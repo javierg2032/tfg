@@ -1,0 +1,327 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+}
+
+/* Header */
+header {
+  background: #fff;
+  color: #2c3e50;
+  padding: 5px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo */
+.logo img {
+  height: 75px;
+  width: auto;
+  cursor: pointer;
+}
+
+/* Barra de búsqueda */
+.buscador {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  margin: 0 30px;
+}
+
+.buscador input {
+  width: 60%;
+  padding: 8px 12px;
+  border: 2px solid #04c4d9;
+  border-radius: 5px 0 0 5px;
+  outline: none;
+}
+
+.buscador button {
+  padding: 8px 12px;
+  border: none;
+  background: #04c4d9;
+  color: white;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.buscador button:hover {
+  background: #038d9c;
+}
+
+/* Iconos */
+.icons {
+  display: flex;
+  gap: 20px;
+}
+
+.icons > div {
+  background: #04c4d9;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.icons > div i {
+  font-size: 1.3em;
+  color: #fff;
+}
+
+.icons > div:hover {
+  background: #038d9c;
+}
+
+/* Índice / Barra sticky */
+.indice {
+  background: #04c4d9;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.indice ul {
+  display: flex;
+  list-style: none;
+  justify-content: center;
+  padding: 10px 0;
+  gap: 10px;
+}
+
+.indice ul li {
+  margin: 0;
+}
+
+.indice ul li a {
+  display: block;
+  padding: 10px 20px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  background-color: #04c4d9;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.indice ul li a:hover {
+  background-color: #038d9c;
+}
+
+/* Popup Usuario */
+.login-popup {
+  display: none;
+  position: absolute;
+  top: 40px; /* distancia debajo del icono */
+  right: 0; /* alineado al borde derecho del icono */
+  background: #fff;
+  border: 2px solid #04c4d9;
+  border-radius: 8px;
+  padding: 15px;
+  width: 220px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+}
+
+/* Inputs */
+.login-popup input {
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+  border: 2px solid #04c4d9;
+  border-radius: 5px;
+}
+
+/* Botón */
+.login-popup button {
+  margin-top: 8px;
+  padding: 8px;
+  width: 100%;
+  background: #04c4d9;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-popup button:hover {
+  background: #038d9c;
+}
+
+.icono-usuario {
+  position: relative;
+}
+
+/* Carrusel */
+.carrusel {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+  background-color: #038d9c;
+  margin: 0;
+}
+
+.diapositivas {
+  display: flex;
+  justify-content: center;
+  transition: transform 0.5s ease-in-out;
+  height: 100%;
+}
+
+.diapositiva {
+  justify-content: center;
+  transition: transform 0.5s ease-in-out;
+  height: 100%;
+  display: none;
+}
+
+.diapositiva-activa {
+  display: block;
+}
+
+/* Botones del carrusel */
+.carrusel button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #04c4d9;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 12px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.carrusel .previo {
+  left: 10px;
+}
+
+.carrusel .siguiente {
+  right: 10px;
+}
+
+.carrusel button:hover {
+  background-color: #ffffff;
+  color: #04c4d9;
+}
+
+/* novedades */
+
+.novedades {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  background-color: #fff;
+  color: #2c3e50;
+  text-align: center;
+  padding: 25px 0px;
+}
+
+.titulo-novedades {
+  grid-column: span 1 / span 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  height: auto;
+}
+
+.novedades > :nth-child(n + 2) {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(1, 1fr);
+  gap: 8px;
+}
+
+.novedades-fila-uno {
+  grid-row-start: 2;
+}
+
+.novedades-fila-dos {
+  grid-row-start: 3;
+}
+
+.novedades-fila-tres {
+  grid-row-start: 4;
+}
+
+.novedades > div > div > img {
+  height: 200px;
+  width: auto;
+}
+
+/* Footer */
+
+footer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr auto;
+  gap: 8px;
+  background-color: #2c3e50;
+  color: #fff;
+  text-align: center;
+  height: auto;
+  padding-top: 25px;
+  padding-bottom: 15px;
+}
+
+footer > div {
+  text-align: start;
+}
+
+footer a {
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.contacto-footer i {
+  margin-right: 5px;
+  color: #04c4d9;
+}
+
+footer a:hover, footer a:hover i {
+  color: #038d9c;
+}
+
+footer > div > h4 {
+  margin-bottom: 25px;
+}
+
+footer > div > a > p {
+  margin-bottom: 20px;
+}
+
+.logo-footer img {
+  height: 200px;
+  width: auto;
+  cursor: pointer;
+}
+
+
+
+.copy-footer {
+  grid-column: span 4 / span 4;
+  grid-row-start: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  height: auto;
+}
