@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="lang" content="es" />
+    <meta name="author" content="Javier Galán" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="TCG, Pokémon, Magic The Gathering, Digimon"
+    />
+    <title>Ryujin</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="icon" href="assets/Logo.png" type="image/png" />
+  </head>
+
+  <body>
+    <header>
+      <div class="logo">
+        <a href="index.php"> <img src="assets/Logo.png" alt="logo" /> </a>
+      </div>
+      <div class="buscador">
+        <input type="text" placeholder="Buscar productos..." />
+        <button><i class="fas fa-search"></i></button>
+      </div>
+      <div class="icons">
+        <div class="icono-usuario" id="userIcon">
+          <i class="fas fa-user"></i>
+
+          <div class="login-popup" id="loginPopup">
+            <form id="formulario-login" action="php/login.php" method="post">
+              <input
+                type="text"
+                name="usuario"
+                placeholder="Usuario"
+                required
+              /><br />
+              <input
+                type="password"
+                name="contrasena"
+                placeholder="Contraseña"
+                required
+              /><br />
+              <button type="submit">Entrar</button>
+            </form>
+            <p id="link-registro">
+              <u>¿No tienes cuenta</u>?
+              <a href="#" id="muestra-registro"><u>Registrate</u></a>
+            </p>
+            <form
+              id="formulario-registro"
+              action="php/registro.php"
+              method="post"
+            >
+              <input
+                type="text"
+                name="usuario"
+                placeholder="Usuario"
+                required
+              /><br />
+              <input
+                type="email"
+                name="correo"
+                placeholder="Correo electronico"
+                required
+              /><br />
+              <input
+                type="password"
+                name="contrasena"
+                placeholder="Contraseña"
+                required
+              /><br />
+              <input
+                type="password"
+                name="repetir_contrasena"
+                placeholder="Repite la contraseña"
+                required
+              /><br />
+              <button type="submit">Registrarse</button>
+            </form>
+            <p id="link-login">
+              <u>¿Ya tienes cuenta</u>?
+              <a href="#" id="muestra-login"><u>Inicia sesión</u></a>
+            </p>
+          </div>
+        </div>
+        <div class="icono-carrito">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+      </div>
+    </header>
+    <nav class="indice">
+      <ul>
+        <li><a href="#inicio">INICIO</a></li>
+        <li><a href="#tcg">TCG</a></li>
+        <li><a href="#funko">FUNKO POP</a></li>
+        <li><a href="#anime">ANIME</a></li>
+      </ul>
+    </nav>
+
+    <main class="perfil">
+      <div class="menu-lateral">
+        <ul>
+          <li data-seccion="detalles" class="activo">
+            <i class="fas fa-user"></i>Detalles de la cuenta
+          </li>
+          <li data-seccion="pedidos">
+            <i class="fas fa-truck-fast"></i>Pedidos
+          </li>
+          <li data-seccion="direcciones">
+            <i class="fas fa-location-dot"></i>Direcciones
+          </li>
+          <li data-seccion="metodos">
+            <i class="fas fa-wallet"></i>Metodos de pago
+          </li>
+          <li data-seccion="salir">
+            <i class="fas fa-arrow-right-from-bracket"></i>Salir
+          </li>
+        </ul>
+      </div>
+
+      <div class="contenido-perfil">
+        <div id="detalles" class="seccion activo">
+          <h2>Detalles de la cuenta</h2>
+          <p>Nombre, correo, etc.</p>
+        </div>
+        <div id="pedidos" class="seccion">
+          <h2>Pedidos</h2>
+          <p>Lista de pedidos del usuario...</p>
+        </div>
+        <div id="direcciones" class="seccion">
+          <h2>Direcciones</h2>
+          <p>Direcciones de envío del usuario...</p>
+        </div>
+        <div id="metodos" class="seccion">
+          <h2>Métodos de pago</h2>
+          <p>Tarjetas, PayPal, etc.</p>
+        </div>
+        <div id="salir" class="seccion">
+          <h2>Salir</h2>
+          <p><a href="php/logout.php">Cerrar sesión</a></p>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

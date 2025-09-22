@@ -19,6 +19,32 @@ window.addEventListener("click", () => {
   loginPopup.style.display = "none";
 });
 
+/* Alternar entre Login y Registro */
+const loginForm = document.getElementById("formulario-login");
+const registerForm = document.getElementById("formulario-registro");
+const linkRegistro = document.getElementById("link-registro");
+const linkLogin = document.getElementById("link-login");
+const muestraRegistro = document.getElementById("muestra-registro");
+const muestraLogin = document.getElementById("muestra-login");
+
+// Mostrar formulario de registro
+muestraRegistro.addEventListener("click", (e) => {
+  e.preventDefault();
+  loginForm.style.display = "none";
+  linkRegistro.style.display = "none";
+  registerForm.style.display = "block";
+  linkLogin.style.display = "block";
+});
+
+// Volver al login
+muestraLogin.addEventListener("click", (e) => {
+  e.preventDefault();
+  loginForm.style.display = "block";
+  linkRegistro.style.display = "block";
+  registerForm.style.display = "none";
+  linkLogin.style.display = "none";
+});
+
 /* Carrusel */
 
 let diapositivaActual = 0;
