@@ -33,7 +33,7 @@
                         <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
                         <button type="submit">Entrar</button>
                     </form>
-                    <p id="link-registro"><u>¿No tienes cuenta</u>? <a href="#"
+                    <p id="link-registro">¿No tienes cuenta? <a href="#"
                             id="muestra-registro"><u>Registrate</u></a></p>
                     <form id="formulario-registro" action="php/registro.php" method="post">
                         <input type="text" name="usuario" placeholder="Usuario" required><br>
@@ -42,7 +42,7 @@
                         <input type="password" name="repetir_contrasena" placeholder="Repite la contraseña" required><br>
                         <button type="submit">Registrarse</button>
                     </form>
-                    <p id="link-login"><u>¿Ya tienes cuenta</u>? <a href="#" id="muestra-login"><u>Inicia sesión</u></a>
+                    <p id="link-login">¿Ya tienes cuenta? <a href="#" id="muestra-login"><br><u>Inicia sesión</u></a>
                     </p>
                 </div>
             </div>
