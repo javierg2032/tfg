@@ -48,7 +48,7 @@
               <button type="submit">Entrar</button>
             </form>
             <p id="link-registro">
-              <u>¿No tienes cuenta</u>?
+              ¿No tienes cuenta?
               <a href="#" id="muestra-registro"><u>Registrate</u></a>
             </p>
             <form
@@ -83,8 +83,8 @@
               <button type="submit">Registrarse</button>
             </form>
             <p id="link-login">
-              <u>¿Ya tienes cuenta</u>?
-              <a href="#" id="muestra-login"><u>Inicia sesión</u></a>
+              ¿Ya tienes cuenta?
+              <a href="#" id="muestra-login"><br /><u>Inicia sesión</u></a>
             </p>
           </div>
         </div>
@@ -146,5 +146,6 @@
         </div>
       </div>
     </main>
+    <script src="js/script.js"></script>
   </body>
 </html>
