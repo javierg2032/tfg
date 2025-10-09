@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Verificar duplicados
-    $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE usuario = :usuario OR correo = :correo");
+    $stmt = $pdo->prepare("SELECT id_usuario FROM usuarios WHERE usuario = :usuario OR correo = :correo");
     $stmt->execute(['usuario' => $usuario, 'correo' => $correo]);
     if ($stmt->rowCount() > 0) {
         die("El usuario o correo ya existe.");
