@@ -107,8 +107,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
- /* === Menú superior del admin === */
-  const menuItemsAdmin = document.querySelectorAll(".menu-superior li");
+ /* === Menú later del admin === */
+  const menuItemsAdmin = document.querySelectorAll(".menu-lateral li");
   const seccionesAdmin = document.querySelectorAll(".contenido-admin .seccion");
 
   if (menuItemsAdmin.length && seccionesAdmin.length) {
@@ -123,14 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* === Mostrar/ocultar formulario nuevo producto === */
-  const btnNuevoProducto = document.getElementById("nuevo-producto");
-  if (btnNuevoProducto) {
-    btnNuevoProducto.addEventListener("click", () => {
-      const form = document.getElementById("form-nuevo-producto");
-      form.style.display = form.style.display === "none" ? "block" : "none";
-    });
-  }
 
   /* === Drawer de edición de producto === */
   const drawer = document.getElementById("drawer-editar-producto");
@@ -158,4 +150,54 @@ document.addEventListener("DOMContentLoaded", () => {
       drawer.classList.add("abierto");
     });
   });
+
+/* === Drawer para crear nuevo producto === */
+const drawerNuevo = document.getElementById("drawer-nuevo");
+const btnNuevoProducto = document.getElementById("nuevo-producto");
+const cerrarNuevo = document.getElementById("cerrar-nuevo");
+
+if (drawerNuevo && btnNuevoProducto && cerrarNuevo) {
+  // Abrir drawer
+  btnNuevoProducto.addEventListener("click", (e) => {
+    e.preventDefault();
+    drawerNuevo.classList.add("abierto");
+  });
+
+  // Cerrar drawer
+  cerrarNuevo.addEventListener("click", () => {
+    drawerNuevo.classList.remove("abierto");
+  });
+}
+
+document.querySelectorAll(".btn-delete").forEach(btn => {
+  btn.addEventListener("click", async (e) => {
+    e.preventDefault(); // Muy importante
+    const id = btn.dataset.id;
+
+    if (!confirm("¿Eliminar este producto?")) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("id_producto", id);
+
+      const response = await fetch("php/elimina_producto.php", {
+        method: "POST",
+        body: formData
+      });
+      const result = await response.json();
+
+      if (result.status === "success") {
+        alert(result.message);
+        // Opcional: eliminar fila de la tabla
+        btn.closest("tr").remove();
+      } else {
+        alert("Error: " + result.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar producto");
+    }
+  });
+});
+
 });
