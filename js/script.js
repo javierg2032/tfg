@@ -52,6 +52,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+
+  /* Menu usuario si está logueado */
+const userMenu = document.getElementById("userMenu");
+
+if (userMenu) {
+  // Mostrar u ocultar menú al hacer clic en el icono
+  userIcon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    userMenu.style.display =
+      userMenu.style.display === "block" ? "none" : "block";
+  });
+
+  // Cerrar el menú al hacer clic fuera
+  window.addEventListener("click", (e) => {
+    if (!e.target.closest(".icono-usuario")) {
+      userMenu.style.display = "none";
+    }
+  });
+}
+
+
   /* === Carrusel === */
   const diapositivas = document.querySelectorAll(".diapositiva");
   if (diapositivas.length) {
