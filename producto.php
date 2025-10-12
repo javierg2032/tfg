@@ -1,5 +1,7 @@
 <?php
-include 'php/config.php';
+session_start();
+
+require 'php/config.php';
 
 // Verificar si viene el id en la URL
 if (isset($_GET['id'])) {
@@ -40,32 +42,73 @@ if (isset($_GET['id'])) {
 </head>
 
 <body>
-  <header>
+<header>
     <div class="logo">
-      <a href="index.php"> <img src="assets/Logo.png" alt="logo" />
-      </a>
+        <a href="index.php">
+            <img src="assets/Logo.png" alt="logo" />
+        </a>
     </div>
-    <div class="buscador">
-      <input type="text" placeholder="Buscar productos..." />
-      <button><i class="fas fa-search"></i></button>
-    </div>
-    <div class="icons">
-      <div class="icono-usuario" id="userIcon">
-        <i class="fas fa-user"></i>
 
-        <div class="login-popup" id="loginPopup">
-          <form action="">
-            <input type="text" placeholder="Usuario" required /><br />
-            <input type="password" placeholder="Contraseña" required /><br />
-            <button type="submit">Entrar</button>
-          </form>
-        </div>
-      </div>
-      <div class="icono-carrito">
-        <i class="fas fa-shopping-cart"></i>
-      </div>
+    <div class="buscador">
+        <input type="text" placeholder="Buscar productos..." />
+        <button><i class="fas fa-search"></i></button>
     </div>
-  </header>
+
+    <div class="icons">
+        <!-- Menú de usuario -->
+        <div class="icono-usuario" id="userIcon">
+            <i class="fas fa-user"></i>
+
+            <?php if (isset($_SESSION['usuario_id'])): ?>
+                <!-- Usuario logueado -->
+                <div class="menu-usuario" id="userMenu">
+                    <p>Hola, <?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
+                    <a href="perfil.php">Perfil</a>
+
+      <?php if (!empty($_SESSION['es_admin'])): ?>
+    <a href="admin.php">Gestionar web</a>
+<?php endif; ?>
+
+                    <a href="php/logout.php">Cerrar sesión</a>
+                </div>
+            <?php else: ?>
+                <!-- Usuario no logueado -->
+                <div class="login-popup" id="loginPopup">
+                    <!-- Formulario de login -->
+                    <form id="formulario-login" action="php/login.php" method="post">
+                        <input type="text" name="usuario" placeholder="Usuario" required /><br />
+                        <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
+                        <button type="submit">Entrar</button>
+                    </form>
+
+                    <p id="link-registro">
+                        ¿No tienes cuenta?
+                        <a href="#" id="muestra-registro"><u>Regístrate</u></a>
+                    </p>
+
+                    <!-- Formulario de registro -->
+                    <form id="formulario-registro" action="php/registro.php" method="post">
+                        <input type="text" name="usuario" placeholder="Usuario" required /><br />
+                        <input type="email" name="correo" placeholder="Correo electrónico" required /><br />
+                        <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
+                        <input type="password" name="repetir_contrasena" placeholder="Repite la contraseña" required /><br />
+                        <button type="submit">Registrarse</button>
+                    </form>
+
+                    <p id="link-login">
+                        ¿Ya tienes cuenta?
+                        <a href="#" id="muestra-login"><br /><u>Inicia sesión</u></a>
+                    </p>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Icono de carrito -->
+        <div class="icono-carrito">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+    </div>
+</header>
   <nav class="indice">
     <ul>
       <li><a href="#inicio">INICIO</a></li>
@@ -108,7 +151,7 @@ if (isset($_GET['id'])) {
       </div>
       <div>
         <?php
-        include 'php/config.php';
+        require 'php/config.php';
 
         // Asegurarnos de que $id sea un entero para seguridad
         $id_producto = intval($id);
