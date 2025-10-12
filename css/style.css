@@ -1,4 +1,20 @@
 /* ====================================
+   VARIABLES DE COLORES
+==================================== */
+:root {
+  --color-principal: #2ab7ca;
+  --color-principal-hover: #038d9c;
+  --color-fondo: #fff;
+  --color-texto: #2c3e50;
+  --color-footer-fondo: #2c3e50;
+  --color-footer-texto: #fff;
+  --color-paypal: #ffc439;
+  --color-paypal-hover: #f2ba36;
+  --color-admin-hover: #e0f7fa;
+  --color-delete-hover: #e74c3c;
+}
+
+/* ====================================
    RESET Y BASE
 ==================================== */
 * {
@@ -9,8 +25,8 @@
 
 body {
   font-family: Arial, sans-serif;
-  background-color: #fff;
-  color: #2c3e50;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
 }
 
 /* ====================================
@@ -21,7 +37,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 5px 30px;
-  background: #fff;
+  background: var(--color-fondo);
 }
 
 .logo img {
@@ -41,7 +57,7 @@ header {
 .buscador input {
   width: 60%;
   padding: 8px 12px;
-  border: 2px solid #2ab7ca;
+  border: 2px solid var(--color-principal);
   border-radius: 5px 0 0 5px;
   outline: none;
 }
@@ -49,15 +65,15 @@ header {
 .buscador button {
   padding: 8px 12px;
   border: none;
-  background: #2ab7ca;
-  color: #fff;
+  background: var(--color-principal);
+  color: var(--color-fondo);
   border-radius: 0 5px 5px 0;
   cursor: pointer;
   transition: 0.3s;
 }
 
 .buscador button:hover {
-  background: #038d9c;
+  background: var(--color-principal-hover);
 }
 
 /* ICONOS */
@@ -67,7 +83,7 @@ header {
 }
 
 .icons>div {
-  background: #2ab7ca;
+  background: var(--color-principal);
   padding: 10px;
   border-radius: 5px;
   display: flex;
@@ -79,18 +95,18 @@ header {
 
 .icons>div i {
   font-size: 1.3em;
-  color: #fff;
+  color: var(--color-fondo);
 }
 
 .icons>div:hover {
-  background: #038d9c;
+  background: var(--color-principal-hover);
 }
 
 /* ====================================
    INDICE / BARRA STICKY
 ==================================== */
 .indice {
-  background: #2ab7ca;
+  background: var(--color-principal);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -108,16 +124,16 @@ header {
 .indice ul li a {
   display: block;
   padding: 10px 20px;
-  color: white;
+  color: var(--color-fondo);
   text-decoration: none;
   font-weight: bold;
-  background-color: #2ab7ca;
+  background-color: var(--color-principal);
   border-radius: 5px;
   transition: background 0.3s;
 }
 
 .indice ul li a:hover {
-  background-color: #038d9c;
+  background-color: var(--color-principal-hover);
 }
 
 /* ====================================
@@ -130,8 +146,8 @@ header {
   right: 0;
   width: 220px;
   padding: 15px;
-  background: #fff;
-  border: 2px solid #2ab7ca;
+  background: var(--color-fondo);
+  border: 2px solid var(--color-principal);
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   z-index: 2000;
@@ -141,7 +157,7 @@ header {
   width: 100%;
   padding: 8px;
   margin: 5px 0;
-  border: 2px solid #2ab7ca;
+  border: 2px solid var(--color-principal);
   border-radius: 5px;
 }
 
@@ -149,15 +165,15 @@ header {
   width: 100%;
   margin-top: 8px;
   padding: 8px;
-  background: #2ab7ca;
-  color: #fff;
+  background: var(--color-principal);
+  color: var(--color-fondo);
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
 .login-popup button:hover {
-  background: #038d9c;
+  background: var(--color-principal-hover);
 }
 
 .login-popup p,
@@ -167,12 +183,12 @@ header {
 }
 
 .login-popup a {
-  color: #2ab7ca;
+  color: var(--color-principal);
   text-decoration: none;
 }
 
 .login-popup a:hover {
-  color: #038d9c;
+  color: var(--color-principal-hover);
 }
 
 #formulario-login {
@@ -200,20 +216,19 @@ header {
   position: absolute;
   right: 0;
   top: 40px;
-  background: white;
+  background: var(--color-fondo);
   border: 1px solid #ccc;
   border-radius: 10px;
   padding: 10px;
   width: 150px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 3000;
-  /* <-- Aumentado para que se vea sobre el nav */
 }
 
 .menu-usuario a {
   display: block;
   text-decoration: none;
-  color: black;
+  color: var(--color-texto);
   padding: 8px 10px;
   transition: background 0.3s;
 }
@@ -235,7 +250,7 @@ header {
   width: 100%;
   height: 500px;
   overflow: hidden;
-  background-color: #038d9c;
+  background-color: var(--color-principal-hover);
 }
 
 .diapositivas {
@@ -260,8 +275,8 @@ header {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #2ab7ca;
-  color: white;
+  background-color: var(--color-principal);
+  color: var(--color-fondo);
   border: none;
   cursor: pointer;
   font-size: 18px;
@@ -281,8 +296,8 @@ header {
 }
 
 .carrusel button:hover {
-  background-color: #ffffff;
-  color: #2ab7ca;
+  background-color: var(--color-fondo);
+  color: var(--color-principal);
 }
 
 /* ====================================
@@ -292,8 +307,8 @@ header {
 .productos-relacionados {
   display: grid;
   gap: 8px;
-  background-color: #fff;
-  color: #2c3e50;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
   text-align: center;
   padding: 25px 0;
 }
@@ -306,7 +321,7 @@ header {
 
 .novedades a,
 .productos-relacionados a {
-  color: #2c3e50;
+  color: var(--color-texto);
   text-decoration: none;
 }
 
@@ -335,8 +350,8 @@ footer {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  background-color: #2c3e50;
-  color: #fff;
+  background-color: var(--color-footer-fondo);
+  color: var(--color-footer-texto);
   text-align: center;
   padding: 25px 0 15px;
 }
@@ -346,18 +361,18 @@ footer>div {
 }
 
 footer a {
-  color: #fff;
+  color: var(--color-footer-texto);
   text-decoration: none;
   transition: 0.3s;
 }
 
 footer a:hover {
-  color: #038d9c;
+  color: var(--color-principal-hover);
 }
 
 .contacto-footer i {
   margin-right: 5px;
-  color: #2ab7ca;
+  color: var(--color-principal);
 }
 
 footer>div>h4 {
@@ -387,7 +402,7 @@ footer>div>a>p {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  background-color: #fff;
+  background-color: var(--color-fondo);
 }
 
 .img-producto {
@@ -406,7 +421,7 @@ footer>div>a>p {
 .compra-producto {
   text-align: start;
   padding: 0 75px 0 15px;
-  color: #2c3e50;
+  color: var(--color-texto);
 }
 
 .compra-producto .nombre {
@@ -449,8 +464,8 @@ footer>div>a>p {
 }
 
 .compra-producto .btn-carrito {
-  background: #2ab7ca;
-  color: #fff;
+  background: var(--color-principal);
+  color: var(--color-fondo);
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -458,12 +473,12 @@ footer>div>a>p {
 }
 
 .compra-producto .btn-carrito:hover {
-  background: #038d9c;
+  background: var(--color-principal-hover);
 }
 
 .compra-producto .btn-paypal {
   width: 100%;
-  background: #ffc439;
+  background: var(--color-paypal);
   border: none;
   border-radius: 30px;
   cursor: pointer;
@@ -471,7 +486,7 @@ footer>div>a>p {
 }
 
 .compra-producto .btn-paypal:hover {
-  background-color: #f2ba36;
+  background-color: var(--color-paypal-hover);
 }
 
 .btn-paypal img {
@@ -492,12 +507,12 @@ footer>div>a>p {
 
 .menu-lateral {
   width: 220px;
-  background-color: #fff;
-  border: 2px solid #2ab7ca;
+  background-color: var(--color-fondo);
+  border: 2px solid var(--color-principal);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  color: #2c3e50;
+  color: var(--color-texto);
   position: sticky;
   top: 20px;
 }
@@ -519,32 +534,32 @@ footer>div>a>p {
 }
 
 .menu-lateral li:hover {
-  background: #e0f7fa;
-  color: #038d9c;
+  background: var(--color-admin-hover);
+  color: var(--color-principal-hover);
 }
 
 .menu-lateral li.activo {
-  background: #038d9c;
-  color: #fff;
+  background: var(--color-principal-hover);
+  color: var(--color-fondo);
   font-weight: bold;
 }
 
 .menu-lateral li.activo i {
-  color: #fff;
+  color: var(--color-fondo);
 }
 
 .menu-lateral i {
   min-width: 20px;
   text-align: center;
-  color: #2ab7ca;
+  color: var(--color-principal);
 }
 
 .contenido-perfil,
 .contenido-admin {
   flex: 1;
   padding: 20px;
-  background-color: #fff;
-  border: 2px solid #2ab7ca;
+  background-color: var(--color-fondo);
+  border: 2px solid var(--color-principal);
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   min-height: 400px;
@@ -560,19 +575,19 @@ footer>div>a>p {
 
 .contenido-perfil h2 {
   margin-bottom: 15px;
-  color: #2ab7ca;
-  border-bottom: 2px solid #2ab7ca;
+  color: var(--color-principal);
+  border-bottom: 2px solid var(--color-principal);
   padding-bottom: 5px;
 }
 
 .contenido-perfil a {
-  color: #2ab7ca;
+  color: var(--color-principal);
   text-decoration: none;
   transition: 0.3s;
 }
 
 .contenido-perfil a:hover {
-  color: #038d9c;
+  color: var(--color-principal-hover);
 }
 
 /* ====================================
@@ -582,7 +597,7 @@ footer>div>a>p {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid #2ab7ca;
+  border: 1px solid var(--color-principal);
   border-radius: 12px;
   margin-top: 20px;
   overflow: hidden;
@@ -591,13 +606,13 @@ footer>div>a>p {
 .tabla-admin th,
 .tabla-admin td {
   padding: 10px;
-  border: 1px solid #2ab7ca;
+  border: 1px solid var(--color-principal);
   text-align: center;
 }
 
 .tabla-admin th {
-  background: #038d9c;
-  color: #fff;
+  background: var(--color-principal-hover);
+  color: var(--color-fondo);
 }
 
 .tabla-admin td img {
@@ -612,16 +627,16 @@ footer>div>a>p {
   font-size: 1.2em;
   cursor: pointer;
   transition: 0.3s;
-  color: #2ab7ca;
+  color: var(--color-principal);
   text-decoration: none;
 }
 
 .btn-edit:hover {
-  color: #038d9c;
+  color: var(--color-principal-hover);
 }
 
 .btn-delete:hover {
-  color: #e74c3c;
+  color: var(--color-delete-hover);
 }
 
 /* ====================================
@@ -635,7 +650,7 @@ footer>div>a>p {
   width: 100%;
   padding: 8px 12px;
   margin-bottom: 15px;
-  border: 2px solid #2ab7ca;
+  border: 2px solid var(--color-principal);
   border-radius: 5px;
   font-family: Arial, sans-serif;
   outline: none;
@@ -645,8 +660,8 @@ footer>div>a>p {
 #form-nuevo-producto button,
 .drawer-body .btn {
   display: inline-block;
-  background-color: #2ab7ca;
-  color: #fff;
+  background-color: var(--color-principal);
+  color: var(--color-fondo);
   font-weight: 600;
   padding: 10px 20px;
   border: none;
@@ -657,7 +672,7 @@ footer>div>a>p {
 
 #form-nuevo-producto button:hover,
 .drawer-body .btn:hover {
-  background-color: #038d9c;
+  background-color: var(--color-principal-hover);
 }
 
 /* DRAWER */
@@ -667,8 +682,8 @@ footer>div>a>p {
   right: -420px;
   width: 420px;
   height: 100%;
-  background: #fff;
-  border-left: 2px solid #2ab7ca;
+  background: var(--color-fondo);
+  border-left: 2px solid var(--color-principal);
   border-radius: 0 8px 8px 0;
   box-shadow: -5px 0 20px rgba(0, 0, 0, 0.15);
   transition: right 0.3s ease;
@@ -685,7 +700,7 @@ footer>div>a>p {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 2px solid #2ab7ca;
+  border-bottom: 2px solid var(--color-principal);
   background: #f4f4f4;
   font-weight: 600;
   font-size: 1.2rem;
@@ -694,12 +709,12 @@ footer>div>a>p {
 .cerrar {
   cursor: pointer;
   font-size: 1.5rem;
-  color: #2ab7ca;
+  color: var(--color-principal);
   transition: 0.2s;
 }
 
 .cerrar:hover {
-  color: #038d9c;
+  color: var(--color-principal-hover);
 }
 
 .drawer-body {
@@ -709,7 +724,7 @@ footer>div>a>p {
 .drawer-body input:focus,
 .drawer-body textarea:focus,
 .drawer-body select:focus {
-  border-color: #038d9c;
+  border-color: var(--color-principal-hover);
   box-shadow: 0 0 5px rgba(3, 141, 156, 0.3);
 }
 
@@ -721,7 +736,7 @@ hr {
   padding: 0;
   height: 2.5px;
   width: 90%;
-  background-color: #2c3e50;
+  background-color: var(--color-texto);
   border-radius: 25px;
   border: none;
 }
