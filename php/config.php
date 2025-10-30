@@ -1,9 +1,9 @@
 <?php
 $host = "localhost";
-$db   = "ryujin";       // tu base de datos
+$db = "ryujin";       // tu base de datos
 $user = "root";          // tu usuario MySQL
 $pass = "";              // tu contraseña MySQL
-$port = 3307;
+$port = 3306;
 
 try {
     $pdo = new PDO("mysql:port=$port;çhost=$host;dbname=$db;charset=utf8", $user, $pass);
