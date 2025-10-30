@@ -8,7 +8,7 @@ if (isset($_GET['id'])) {
   $id = intval($_GET['id']); // seguridad: evitar inyección SQL
 
   // Consulta a la base de datos usando PDO
-  $sql = "SELECT nombre, precio, imagen, descripcion 
+  $sql = "SELECT nombre, precio, imagen, descripcion ,stock
             FROM productos 
             WHERE id_producto = :id";
 
@@ -129,12 +129,17 @@ if (isset($_GET['id'])) {
         <p class="descripcion"><?php echo $producto['descripcion']; ?></p>
 
         <div class="acciones">
-          <div class="cantidad">
+        <div class="cantidad" data-stock="<?php echo $producto['stock']; ?>">
             <button class="menos">-</button>
-            <input type="number" value="1" min="1" />
+            <input type="number" value="1" min="1" readonly />
             <button class="mas">+</button>
           </div>
-          <button class="btn-carrito">Añadir al carrito</button>
+<button class="btn-carrito"
+        data-id="<?php echo $id; ?>"
+        data-stock="<?php echo $producto['stock']; ?>">
+  Añadir al carrito
+</button>
+
         </div>
 
         <button class="btn-paypal">
@@ -181,6 +186,21 @@ if (isset($_GET['id'])) {
     </section>
 
   </main>
+
+  <!-- Drawer del carrito -->
+<div id="drawer-carrito" class="drawer">
+  <div class="drawer-header">
+    <h3>Tu carrito</h3>
+    <span class="cerrar" onclick="drawerCarrito.classList.remove('abierto')">&times;</span>
+  </div>
+  <div class="drawer-body lista-carrito">
+    <!-- Aquí se llenará con JS -->
+  </div>
+  <div class="drawer-footer total-carrito">Total: 0 €</div>
+  <button class="btn-pagar">Ir a pagar</button>
+</div>
+
+
   <script src="js/script.js"></script>
 </body>
 <footer>
