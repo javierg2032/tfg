@@ -221,4 +221,132 @@ document.querySelectorAll(".btn-delete").forEach(btn => {
   });
 });
 
+const cantidadDiv = document.querySelector(".cantidad");
+const input = cantidadDiv.querySelector("input[type='number']");
+const btnMas = cantidadDiv.querySelector(".mas");
+const btnMenos = cantidadDiv.querySelector(".menos");
+
+const stockDisponible = parseInt(cantidadDiv.dataset.stock) || Infinity;
+const maxPorPedido = 5;
+const limite = Math.min(stockDisponible, maxPorPedido);
+
+function mostrarTooltip(mensaje) {
+  // Eliminar tooltip previo
+  let tooltip = cantidadDiv.querySelector(".tooltip-cantidad");
+  if (tooltip) tooltip.remove();
+
+  // Crear tooltip nuevo
+  tooltip = document.createElement("div");
+  tooltip.className = "tooltip-cantidad";
+  tooltip.textContent = mensaje;
+  cantidadDiv.appendChild(tooltip);
+
+  // Eliminar después de 2 segundos
+  setTimeout(() => tooltip.remove(), 2000);
+}
+
+btnMas.addEventListener("click", () => {
+  let valor = parseInt(input.value) || 0;
+  if (valor < limite) {
+    input.value = valor + 1;
+    input.dispatchEvent(new Event("change"));
+  } else {
+    mostrarTooltip(`Máximo ${limite} unidades`);
+  }
 });
+
+btnMenos.addEventListener("click", () => {
+  const min = parseInt(input.min) || 1;
+  let valor = parseInt(input.value) || 0;
+  if (valor > min) {
+    input.value = valor - 1;
+    input.dispatchEvent(new Event("change"));
+  }
+});
+document.querySelectorAll('.btn-carrito').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const productoDiv = btn.closest('.producto');
+    const id = parseInt(btn.dataset.id); // si usas data-id en el botón
+    const cantidad = parseInt(productoDiv.querySelector('input[type="number"]').value);
+
+    try {
+      const formData = new FormData();
+      formData.append('id_producto', id);
+      formData.append('cantidad', cantidad);
+
+      const response = await fetch('php/carrito.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        alert(result.message);
+        actualizarCarrito(); // función que actualiza el drawer
+      } else {
+        alert('Error: ' + result.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al añadir al carrito');
+    }
+  });
+});
+
+async function actualizarCarrito() {
+  const drawer = document.getElementById('drawer-carrito');
+  const lista = drawer.querySelector('.lista-carrito');
+  const totalElem = drawer.querySelector('.total-carrito');
+
+  try {
+    const response = await fetch('php/muestra_carrito.php');
+    const data = await response.json();
+
+    lista.innerHTML = '';
+
+    if (!data.productos || Object.keys(data.productos).length === 0) {
+      lista.innerHTML = '<p>El carrito está vacío</p>';
+    } else {
+      for (const id in data.productos) {
+        const p = data.productos[id];
+        const item = document.createElement('div');
+        item.className = 'item-carrito';
+        item.innerHTML = `
+          <img src="/tfg${p.imagen}" alt="${p.nombre}" />
+          <div>
+            <p>${p.nombre}</p>
+            <p>${p.cantidad} x ${parseFloat(p.precio).toFixed(2)} €</p>
+          </div>
+        `;
+        lista.appendChild(item);
+      }
+    }
+
+    totalElem.textContent = `Total: ${parseFloat(data.total).toFixed(2)} €`;
+
+  } catch (err) {
+    console.error(err);
+    lista.innerHTML = '<p>Error al cargar el carrito</p>';
+    totalElem.textContent = 'Total: 0 €';
+  }
+}
+
+
+const iconoCarrito = document.querySelector('.icono-carrito');
+const drawerCarrito = document.getElementById('drawer-carrito');
+
+iconoCarrito.addEventListener('click', () => {
+  drawerCarrito.classList.toggle('abierto');
+  actualizarCarrito(); // cargar el contenido al abrir
+});
+
+// Cerrar al hacer clic fuera
+window.addEventListener('click', e => {
+  if (!e.target.closest('.icono-carrito') && !e.target.closest('#drawer-carrito')) {
+    drawerCarrito.classList.remove('abierto');
+  }
+});
+
+
+  });
