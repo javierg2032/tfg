@@ -52,26 +52,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-
   /* Menu usuario si está logueado */
-const userMenu = document.getElementById("userMenu");
+  const userMenu = document.getElementById("userMenu");
 
-if (userMenu) {
-  // Mostrar u ocultar menú al hacer clic en el icono
-  userIcon.addEventListener("click", (e) => {
-    e.stopPropagation();
-    userMenu.style.display =
-      userMenu.style.display === "block" ? "none" : "block";
-  });
+  if (userMenu) {
+    // Mostrar u ocultar menú al hacer clic en el icono
+    userIcon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      userMenu.style.display =
+        userMenu.style.display === "block" ? "none" : "block";
+    });
 
-  // Cerrar el menú al hacer clic fuera
-  window.addEventListener("click", (e) => {
-    if (!e.target.closest(".icono-usuario")) {
-      userMenu.style.display = "none";
-    }
-  });
-}
-
+    // Cerrar el menú al hacer clic fuera
+    window.addEventListener("click", (e) => {
+      if (!e.target.closest(".icono-usuario")) {
+        userMenu.style.display = "none";
+      }
+    });
+  }
 
   /* === Carrusel === */
   const diapositivas = document.querySelectorAll(".diapositiva");
@@ -114,7 +112,9 @@ if (userMenu) {
 
   /* === Menú lateral del perfil === */
   const menuItemsPerfil = document.querySelectorAll(".menu-lateral li");
-  const seccionesPerfil = document.querySelectorAll(".contenido-perfil .seccion");
+  const seccionesPerfil = document.querySelectorAll(
+    ".contenido-perfil .seccion"
+  );
 
   if (menuItemsPerfil.length && seccionesPerfil.length) {
     menuItemsPerfil.forEach((item) => {
@@ -128,7 +128,7 @@ if (userMenu) {
     });
   }
 
- /* === Menú later del admin === */
+  /* === Menú later del admin === */
   const menuItemsAdmin = document.querySelectorAll(".menu-lateral li");
   const seccionesAdmin = document.querySelectorAll(".contenido-admin .seccion");
 
@@ -144,7 +144,6 @@ if (userMenu) {
     });
   }
 
-
   /* === Drawer de edición de producto === */
   const drawer = document.getElementById("drawer-editar-producto");
   const cerrarDrawer = document.getElementById("cerrar-drawer");
@@ -156,15 +155,16 @@ if (userMenu) {
   }
 
   // Botones de editar producto
-  document.querySelectorAll(".btn-edit").forEach(btn => {
-    btn.addEventListener("click", e => {
+  document.querySelectorAll(".btn-edit").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
 
       // Rellenar formulario con datos de la fila (data-*)
       document.getElementById("edit-id").value = btn.dataset.id;
       document.getElementById("edit-nombre").value = btn.dataset.nombre;
       document.getElementById("edit-precio").value = btn.dataset.precio;
-      document.getElementById("edit-descripcion").value = btn.dataset.descripcion;
+      document.getElementById("edit-descripcion").value =
+        btn.dataset.descripcion;
       document.getElementById("edit-stock").value = btn.dataset.stock;
       document.getElementById("edit-imagen-actual").value = btn.dataset.imagen;
 
@@ -172,181 +172,178 @@ if (userMenu) {
     });
   });
 
-/* === Drawer para crear nuevo producto === */
-const drawerNuevo = document.getElementById("drawer-nuevo");
-const btnNuevoProducto = document.getElementById("nuevo-producto");
-const cerrarNuevo = document.getElementById("cerrar-nuevo");
+  /* === Drawer para crear nuevo producto === */
+  const drawerNuevo = document.getElementById("drawer-nuevo");
+  const btnNuevoProducto = document.getElementById("nuevo-producto");
+  const cerrarNuevo = document.getElementById("cerrar-nuevo");
 
-if (drawerNuevo && btnNuevoProducto && cerrarNuevo) {
-  // Abrir drawer
-  btnNuevoProducto.addEventListener("click", (e) => {
-    e.preventDefault();
-    drawerNuevo.classList.add("abierto");
-  });
+  if (drawerNuevo && btnNuevoProducto && cerrarNuevo) {
+    // Abrir drawer
+    btnNuevoProducto.addEventListener("click", (e) => {
+      e.preventDefault();
+      drawerNuevo.classList.add("abierto");
+    });
 
-  // Cerrar drawer
-  cerrarNuevo.addEventListener("click", () => {
-    drawerNuevo.classList.remove("abierto");
-  });
-}
+    // Cerrar drawer
+    cerrarNuevo.addEventListener("click", () => {
+      drawerNuevo.classList.remove("abierto");
+    });
+  }
 
-document.querySelectorAll(".btn-delete").forEach(btn => {
-  btn.addEventListener("click", async (e) => {
-    e.preventDefault(); // Muy importante
-    const id = btn.dataset.id;
+  // Eliminación de productos ahora mediante formularios HTML (no-AJAX).
 
-    if (!confirm("¿Eliminar este producto?")) return;
+  // Manejo de cantidades (funciona por cada bloque .cantidad en la página)
+  document.querySelectorAll(".cantidad").forEach((cantidadDiv) => {
+    const input = cantidadDiv.querySelector("input[type='number']");
+    const btnMas = cantidadDiv.querySelector(".mas");
+    const btnMenos = cantidadDiv.querySelector(".menos");
 
-    try {
-      const formData = new FormData();
-      formData.append("id_producto", id);
+    const stockDisponible = parseInt(cantidadDiv.dataset.stock) || Infinity;
+    const maxPorPedido = 5;
+    const limite = Math.min(stockDisponible, maxPorPedido);
 
-      const response = await fetch("php/elimina_producto.php", {
-        method: "POST",
-        body: formData
-      });
-      const result = await response.json();
+    function mostrarTooltip(mensaje) {
+      let tooltip = cantidadDiv.querySelector(".tooltip-cantidad");
+      if (tooltip) tooltip.remove();
+      tooltip = document.createElement("div");
+      tooltip.className = "tooltip-cantidad";
+      tooltip.textContent = mensaje;
+      cantidadDiv.appendChild(tooltip);
+      setTimeout(() => tooltip.remove(), 2000);
+    }
 
-      if (result.status === "success") {
-        alert(result.message);
-        // Opcional: eliminar fila de la tabla
-        btn.closest("tr").remove();
+    btnMas?.addEventListener("click", () => {
+      let valor = parseInt(input.value) || 0;
+      if (valor < limite) {
+        input.value = valor + 1;
+        input.dispatchEvent(new Event("change"));
       } else {
-        alert("Error: " + result.message);
+        mostrarTooltip(`Máximo ${limite} unidades`);
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error al eliminar producto");
-    }
+    });
+
+    btnMenos?.addEventListener("click", () => {
+      const min = parseInt(input.min) || 1;
+      let valor = parseInt(input.value) || 0;
+      if (valor > min) {
+        input.value = valor - 1;
+        input.dispatchEvent(new Event("change"));
+      }
+    });
   });
-});
 
-const cantidadDiv = document.querySelector(".cantidad");
-const input = cantidadDiv.querySelector("input[type='number']");
-const btnMas = cantidadDiv.querySelector(".mas");
-const btnMenos = cantidadDiv.querySelector(".menos");
+  /* === Drawer Carrito === */
+  /* === Drawer Carrito === */
+  const iconoCarrito = document.querySelector(".icono-carrito");
+  const drawerCarrito = document.getElementById("drawer-carrito");
 
-const stockDisponible = parseInt(cantidadDiv.dataset.stock) || Infinity;
-const maxPorPedido = 5;
-const limite = Math.min(stockDisponible, maxPorPedido);
+  if (iconoCarrito && drawerCarrito) {
+    iconoCarrito.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drawerCarrito.classList.add("abierto");
+    });
 
-function mostrarTooltip(mensaje) {
-  // Eliminar tooltip previo
-  let tooltip = cantidadDiv.querySelector(".tooltip-cantidad");
-  if (tooltip) tooltip.remove();
-
-  // Crear tooltip nuevo
-  tooltip = document.createElement("div");
-  tooltip.className = "tooltip-cantidad";
-  tooltip.textContent = mensaje;
-  cantidadDiv.appendChild(tooltip);
-
-  // Eliminar después de 2 segundos
-  setTimeout(() => tooltip.remove(), 2000);
-}
-
-btnMas.addEventListener("click", () => {
-  let valor = parseInt(input.value) || 0;
-  if (valor < limite) {
-    input.value = valor + 1;
-    input.dispatchEvent(new Event("change"));
-  } else {
-    mostrarTooltip(`Máximo ${limite} unidades`);
-  }
-});
-
-btnMenos.addEventListener("click", () => {
-  const min = parseInt(input.min) || 1;
-  let valor = parseInt(input.value) || 0;
-  if (valor > min) {
-    input.value = valor - 1;
-    input.dispatchEvent(new Event("change"));
-  }
-});
-document.querySelectorAll('.btn-carrito').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const productoDiv = btn.closest('.producto');
-    const id = parseInt(btn.dataset.id); // si usas data-id en el botón
-    const cantidad = parseInt(productoDiv.querySelector('input[type="number"]').value);
-
-    try {
-      const formData = new FormData();
-      formData.append('id_producto', id);
-      formData.append('cantidad', cantidad);
-
-      const response = await fetch('php/carrito.php', {
-        method: 'POST',
-        body: formData
+    // Cerrar drawer
+    const cerrarDrawerCarrito = document.getElementById("cerrar-drawer-carrito");
+    if (cerrarDrawerCarrito) {
+      cerrarDrawerCarrito.addEventListener("click", () => {
+        drawerCarrito.classList.remove("abierto");
       });
-
-      const result = await response.json();
-
-      if (result.status === 'success') {
-        alert(result.message);
-        actualizarCarrito(); // función que actualiza el drawer
-      } else {
-        alert('Error: ' + result.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error al añadir al carrito');
-    }
-  });
-});
-
-async function actualizarCarrito() {
-  const drawer = document.getElementById('drawer-carrito');
-  const lista = drawer.querySelector('.lista-carrito');
-  const totalElem = drawer.querySelector('.total-carrito');
-
-  try {
-    const response = await fetch('php/muestra_carrito.php');
-    const data = await response.json();
-
-    lista.innerHTML = '';
-
-    if (!data.productos || Object.keys(data.productos).length === 0) {
-      lista.innerHTML = '<p>El carrito está vacío</p>';
-    } else {
-      for (const id in data.productos) {
-        const p = data.productos[id];
-        const item = document.createElement('div');
-        item.className = 'item-carrito';
-        item.innerHTML = `
-          <img src="/tfg${p.imagen}" alt="${p.nombre}" />
-          <div>
-            <p>${p.nombre}</p>
-            <p>${p.cantidad} x ${parseFloat(p.precio).toFixed(2)} €</p>
-          </div>
-        `;
-        lista.appendChild(item);
-      }
     }
 
-    totalElem.textContent = `Total: ${parseFloat(data.total).toFixed(2)} €`;
+    drawerCarrito.addEventListener("click", (e) => e.stopPropagation());
 
-  } catch (err) {
-    console.error(err);
-    lista.innerHTML = '<p>Error al cargar el carrito</p>';
-    totalElem.textContent = 'Total: 0 €';
+    window.addEventListener("click", (e) => {
+      if (
+        !e.target.closest("#drawer-carrito") &&
+        !e.target.closest(".icono-carrito")
+      ) {
+        drawerCarrito.classList.remove("abierto");
+      }
+    });
+
+  } else if (iconoCarrito) {
+    // Fallback si no hay drawer (otras páginas)
+    iconoCarrito.addEventListener("click", () => {
+      window.location.href = "carrito.php";
+    });
   }
-}
 
-
-const iconoCarrito = document.querySelector('.icono-carrito');
-const drawerCarrito = document.getElementById('drawer-carrito');
-
-iconoCarrito.addEventListener('click', () => {
-  drawerCarrito.classList.toggle('abierto');
-  actualizarCarrito(); // cargar el contenido al abrir
-});
-
-// Cerrar al hacer clic fuera
-window.addEventListener('click', e => {
-  if (!e.target.closest('.icono-carrito') && !e.target.closest('#drawer-carrito')) {
-    drawerCarrito.classList.remove('abierto');
+  // Comprobar si hay que abrir el carrito automáticamente (tras redirección PHP)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('open_cart') === 'true' && drawerCarrito) {
+      drawerCarrito.classList.add('abierto');
+      // Limpiar la URL para que no se vuelva a abrir al recargar
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.search.replace(/[?&]open_cart=true/, '');
+      window.history.replaceState({path: newUrl}, '', newUrl);
   }
 });
 
+/* === Drawer para añadir/editar direcciones en perfil === */
+document.addEventListener("DOMContentLoaded", () => {
+  const drawerDir = document.getElementById("drawer-direccion");
+  const btnNuevoDir = document.getElementById("btn-nueva-direccion");
+  const cerrarDrawerDir = document.getElementById("cerrar-drawer-direccion");
+  const tituloDrawer = document.getElementById("drawer-direccion-titulo");
+  const formDir = document.getElementById("form-direccion");
 
+  // Cancel button inside drawer
+  const btnCancelarDir = document.getElementById("btn-cancelar-dir");
+  if (btnCancelarDir)
+    btnCancelarDir.addEventListener("click", () =>
+      drawerDir.classList.remove("abierto")
+    );
+
+  // Cerrar drawer al hacer click fuera
+  window.addEventListener("click", (e) => {
+    if (
+      !e.target.closest("#drawer-direccion") &&
+      !e.target.closest("#btn-nueva-direccion")
+    ) {
+      drawerDir?.classList.remove("abierto");
+    }
   });
+
+  // Evitar que el drawer se cierre al hacer click dentro
+  drawerDir?.addEventListener("click", (e) => e.stopPropagation());
+
+  // El formulario de direcciones ahora se envía por POST normal al servidor (php/direcciones_handler.php)
+  // No se ejecuta ninguna lógica AJAX aquí. El servidor redirige de vuelta a perfil.php y muestra mensajes en sesión.
+
+  // Adjuntar sólo los listeners necesarios para editar cuando se generen elementos dinámicos
+  function attachListeners(item) {
+    const editBtn = item.querySelector(".btn-edit-dir");
+    if (editBtn) {
+      editBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("dir-action").value = "edit";
+        document.getElementById("dir-id-ud").value =
+          editBtn.dataset.id_usuario_direccion || "";
+        document.getElementById("dir-id").value =
+          editBtn.dataset.id_direccion || "";
+        document.getElementById("dir-nombre").value =
+          editBtn.dataset.nombre || "";
+        document.getElementById("dir-apellido").value =
+          editBtn.dataset.apellido || "";
+        document.getElementById("dir-calle").value =
+          editBtn.dataset.calle || "";
+        document.getElementById("dir-ciudad").value =
+          editBtn.dataset.ciudad || "";
+        document.getElementById("dir-codigo_postal").value =
+          editBtn.dataset.codigo_postal || "";
+        document.getElementById("dir-provincia").value =
+          editBtn.dataset.provincia || "";
+        document.getElementById("dir-pais").value = editBtn.dataset.pais || "";
+        const factChk = document.getElementById("dir-facturacion");
+        if (factChk) factChk.checked = editBtn.dataset.facturacion === "1";
+        const tipoSel = document.getElementById("dir-id-tipo");
+        if (tipoSel && editBtn.dataset.id_tipo)
+          tipoSel.value = editBtn.dataset.id_tipo;
+        document.getElementById("drawer-direccion-titulo").textContent =
+          "Editar dirección";
+        drawerDir.classList.add("abierto");
+      });
+    }
+  }
+});

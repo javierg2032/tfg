@@ -533,7 +533,7 @@ footer>div>a>p {
 .compra-producto .cantidad button {
   width: 40px;
   border: none;
-  background: var(--cian-300);
+  background: var(--cian-500);
   color: white;
   cursor: pointer;
   display: flex;
@@ -542,7 +542,7 @@ footer>div>a>p {
 }
 
 .compra-producto .cantidad button:hover {
-  background-color: var(--cian-300);
+  background-color: #038d9c;
 }
 
 .compra-producto .btn-carrito {
@@ -775,6 +775,23 @@ footer>div>a>p {
 
 .drawer.abierto {
   right: 0;
+}
+
+/* Grid para direcciones en perfil */
+.direcciones-grid {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.direcciones-col {
+  flex: 1;
+  min-width: 200px;
+}
+
+.direcciones-col h5 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
 }
 
 .drawer-header {
@@ -1017,4 +1034,111 @@ input[type="button"],
 button[type="submit"],
 button[type="button"] {
   font-family: inherit;
+}
+
+/* ====================================
+   Carrito Drawer Styles
+==================================== */
+.lista-carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px;
+}
+
+.item-carrito {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  color: var(--cian-700);
+}
+
+.item-info .precio {
+  margin: 0;
+  font-weight: bold;
+  color: var(--cian-500);
+}
+
+.item-controles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0f0f0;
+  border-radius: 5px;
+  padding: 2px;
+}
+
+.btn-cantidad {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px 8px;
+  color: var(--cian-700);
+}
+
+.btn-cantidad:hover {
+  color: var(--cian-500);
+}
+
+.btn-eliminar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e74c3c;
+  font-size: 1.1rem;
+}
+
+.carrito-footer {
+  padding: 20px;
+  border-top: 2px solid var(--cian-500);
+  margin-top: auto;
+}
+
+.carrito-footer .total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.btn-pagar {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--cian-500);
+  color: white;
+  padding: 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.btn-pagar:hover {
+  background: var(--cian-300);
+  color: var(--cian-700);
+}
+
+.carrito-vacio {
+  padding: 20px;
+  text-align: center;
+  color: var(--cian-700);
 }

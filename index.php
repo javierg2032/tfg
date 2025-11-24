@@ -168,9 +168,19 @@ if ($resultado) {
  </section>
 
     </main>
-    <script src="js/script.js"></script>
-</body>
-<footer>
+
+    <!-- Drawer Carrito -->
+    <div id="drawer-carrito" class="drawer">
+        <div class="drawer-header">
+            <h3>Tu Carrito</h3>
+            <span id="cerrar-drawer-carrito" class="cerrar">&times;</span>
+        </div>
+        <div class="drawer-body" id="contenido-carrito">
+            <?php include 'php/ver_carrito_fragment.php'; ?>
+        </div>
+    </div>
+
+    <footer>
     <div class="logo-footer"><img src="assets/Logo.png" alt="logo" /></div>
     <div class="info-footer">
         <h4><u>INFORMACIÓN</u></h4>
@@ -212,5 +222,7 @@ if ($resultado) {
         <p>Copyright © 2025 Ryujin. Diseñado por Javier Galán Cortés</p>
     </div>
 </footer>
+    <script src="js/script.js"></script>
+</body>
 
 </html>

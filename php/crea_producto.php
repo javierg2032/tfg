@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "config.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,17 +25,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             try {
                 $stmt->execute([$nombre, $precio, $descripcion, $stock, $ruta_guardada, $id_categoria]);
-                echo "<script>window.location.href='../admin.php';</script>";
+                $_SESSION['mensaje_admin'] = 'Producto creado correctamente';
+                header('Location: ../admin.php');
+                exit;
             } catch (PDOException $e) {
-                echo "Error al insertar el producto: " . $e->getMessage();
+                $_SESSION['mensaje_admin'] = "Error al insertar el producto: " . $e->getMessage();
+                header('Location: ../admin.php');
+                exit;
             }
         } else {
-            echo "Error al subir la imagen.";
+            $_SESSION['mensaje_admin'] = "Error al subir la imagen.";
+            header('Location: ../admin.php');
+            exit;
         }
     } else {
-        echo "Debe seleccionar una imagen para el producto.";
+        $_SESSION['mensaje_admin'] = "Debe seleccionar una imagen para el producto.";
+        header('Location: ../admin.php');
+        exit;
     }
 } else {
-    echo "Método no permitido.";
+    $_SESSION['mensaje_admin'] = "Método no permitido.";
+    header('Location: ../admin.php');
+    exit;
 }
 ?>

@@ -42,73 +42,73 @@ if (isset($_GET['id'])) {
 </head>
 
 <body>
-<header>
+  <header>
     <div class="logo">
-        <a href="index.php">
-            <img src="assets/Logo.png" alt="logo" />
-        </a>
+      <a href="index.php">
+        <img src="assets/Logo.png" alt="logo" />
+      </a>
     </div>
 
     <div class="buscador">
-        <input type="text" placeholder="Buscar productos..." />
-        <button><i class="fas fa-search"></i></button>
+      <input type="text" placeholder="Buscar productos..." />
+      <button><i class="fas fa-search"></i></button>
     </div>
 
     <div class="icons">
-        <!-- Menú de usuario -->
-        <div class="icono-usuario" id="userIcon">
-            <i class="fas fa-user"></i>
+      <!-- Menú de usuario -->
+      <div class="icono-usuario" id="userIcon">
+        <i class="fas fa-user"></i>
 
-            <?php if (isset($_SESSION['usuario_id'])): ?>
-                <!-- Usuario logueado -->
-                <div class="menu-usuario" id="userMenu">
-                    <p>Hola, <?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
-                    <a href="perfil.php">Perfil</a>
+        <?php if (isset($_SESSION['usuario_id'])): ?>
+          <!-- Usuario logueado -->
+          <div class="menu-usuario" id="userMenu">
+            <p>Hola, <?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
+            <a href="perfil.php">Perfil</a>
 
-      <?php if (!empty($_SESSION['es_admin'])): ?>
-    <a href="admin.php">Gestionar web</a>
-<?php endif; ?>
-
-                    <a href="php/logout.php">Cerrar sesión</a>
-                </div>
-            <?php else: ?>
-                <!-- Usuario no logueado -->
-                <div class="login-popup" id="loginPopup">
-                    <!-- Formulario de login -->
-                    <form id="formulario-login" action="php/login.php" method="post">
-                        <input type="text" name="usuario" placeholder="Usuario" required /><br />
-                        <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
-                        <button type="submit">Entrar</button>
-                    </form>
-
-                    <p id="link-registro">
-                        ¿No tienes cuenta?
-                        <a href="#" id="muestra-registro"><u>Regístrate</u></a>
-                    </p>
-
-                    <!-- Formulario de registro -->
-                    <form id="formulario-registro" action="php/registro.php" method="post">
-                        <input type="text" name="usuario" placeholder="Usuario" required /><br />
-                        <input type="email" name="correo" placeholder="Correo electrónico" required /><br />
-                        <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
-                        <input type="password" name="repetir_contrasena" placeholder="Repite la contraseña" required /><br />
-                        <button type="submit">Registrarse</button>
-                    </form>
-
-                    <p id="link-login">
-                        ¿Ya tienes cuenta?
-                        <a href="#" id="muestra-login"><br /><u>Inicia sesión</u></a>
-                    </p>
-                </div>
+            <?php if (!empty($_SESSION['es_admin'])): ?>
+              <a href="admin.php">Gestionar web</a>
             <?php endif; ?>
-        </div>
 
-        <!-- Icono de carrito -->
-        <div class="icono-carrito">
-            <i class="fas fa-shopping-cart"></i>
-        </div>
+            <a href="php/logout.php">Cerrar sesión</a>
+          </div>
+        <?php else: ?>
+          <!-- Usuario no logueado -->
+          <div class="login-popup" id="loginPopup">
+            <!-- Formulario de login -->
+            <form id="formulario-login" action="php/login.php" method="post">
+              <input type="text" name="usuario" placeholder="Usuario" required /><br />
+              <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
+              <button type="submit">Entrar</button>
+            </form>
+
+            <p id="link-registro">
+              ¿No tienes cuenta?
+              <a href="#" id="muestra-registro"><u>Regístrate</u></a>
+            </p>
+
+            <!-- Formulario de registro -->
+            <form id="formulario-registro" action="php/registro.php" method="post">
+              <input type="text" name="usuario" placeholder="Usuario" required /><br />
+              <input type="email" name="correo" placeholder="Correo electrónico" required /><br />
+              <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
+              <input type="password" name="repetir_contrasena" placeholder="Repite la contraseña" required /><br />
+              <button type="submit">Registrarse</button>
+            </form>
+
+            <p id="link-login">
+              ¿Ya tienes cuenta?
+              <a href="#" id="muestra-login"><br /><u>Inicia sesión</u></a>
+            </p>
+          </div>
+        <?php endif; ?>
+      </div>
+
+      <!-- Icono de carrito -->
+      <div class="icono-carrito">
+        <i class="fas fa-shopping-cart"></i>
+      </div>
     </div>
-</header>
+  </header>
   <nav class="indice">
     <ul>
       <li><a href="#inicio">INICIO</a></li>
@@ -129,17 +129,15 @@ if (isset($_GET['id'])) {
         <p class="descripcion"><?php echo $producto['descripcion']; ?></p>
 
         <div class="acciones">
-        <div class="cantidad" data-stock="<?php echo $producto['stock']; ?>">
-            <button class="menos">-</button>
-            <input type="number" value="1" min="1" readonly />
-            <button class="mas">+</button>
-          </div>
-<button class="btn-carrito"
-        data-id="<?php echo $id; ?>"
-        data-stock="<?php echo $producto['stock']; ?>">
-  Añadir al carrito
-</button>
-
+          <form action="php/anade_carrito.php" method="post" class="form-anade-carrito">
+            <div class="cantidad" data-stock="<?php echo $producto['stock']; ?>">
+              <button type="button" class="menos">-</button>
+              <input type="number" name="cantidad" value="1" min="1" readonly />
+              <button type="button" class="mas">+</button>
+            </div>
+            <input type="hidden" name="id_producto" value="<?php echo $id; ?>">
+            <button type="submit" class="btn-carrito">Añadir al carrito</button>
+          </form>
         </div>
 
         <button class="btn-paypal">
@@ -187,63 +185,61 @@ if (isset($_GET['id'])) {
 
   </main>
 
-  <!-- Drawer del carrito -->
-<div id="drawer-carrito" class="drawer">
-  <div class="drawer-header">
-    <h3>Tu carrito</h3>
-    <span class="cerrar" onclick="drawerCarrito.classList.remove('abierto')">&times;</span>
+  <!-- Drawer Carrito -->
+  <div id="drawer-carrito" class="drawer">
+    <div class="drawer-header">
+      <h3>Tu Carrito</h3>
+      <span id="cerrar-drawer-carrito" class="cerrar">&times;</span>
+    </div>
+    <div class="drawer-body" id="contenido-carrito">
+      <?php include 'php/ver_carrito_fragment.php'; ?>
+    </div>
   </div>
-  <div class="drawer-body lista-carrito">
-    <!-- Aquí se llenará con JS -->
-  </div>
-  <div class="drawer-footer total-carrito">Total: 0 €</div>
-  <button class="btn-pagar">Ir a pagar</button>
-</div>
 
+  <footer>
+    <div class="logo-footer"><img src="assets/Logo.png" alt="logo" /></div>
+    <div class="info-footer">
+      <h4><u>INFORMACIÓN</u></h4>
+      <a href="">
+        <p>Sobre Ryujin</p>
+      </a>
+      <a href="">
+        <p>Aviso Legal</p>
+      </a>
+      <a href="">
+        <p>Política de privacidad</p>
+      </a>
+      <a href="">
+        <p>Política de cookies</p>
+      </a>
+    </div>
+    <div class="condiciones-footer">
+      <h4><u>CONDICIONES</u></h4>
+      <a href="">
+        <p>Formas de pago</p>
+      </a>
+      <a href="">
+        <p>Garantias y Devoluciones</p>
+      </a>
+      <a href="">
+        <p>Gastos de envío</p>
+      </a>
+      <a href="">
+        <p>Plazos de entrega</p>
+      </a>
+    </div>
+    <div class="contacto-footer">
+      <h4><u>CONTACTO</u></h4>
+      <a href="">
+        <p><i class="fas fa-envelope"></i>info@ryujin.com</p>
+      </a>
+    </div>
+    <div class="copy-footer">
+      <p>Copyright © 2025 Ryujin. Diseñado por Javier Galán Cortés</p>
+    </div>
+  </footer>
 
   <script src="js/script.js"></script>
 </body>
-<footer>
-  <div class="logo-footer"><img src="assets/Logo.png" alt="logo" /></div>
-  <div class="info-footer">
-    <h4><u>INFORMACIÓN</u></h4>
-    <a href="">
-      <p>Sobre Ryujin</p>
-    </a>
-    <a href="">
-      <p>Aviso Legal</p>
-    </a>
-    <a href="">
-      <p>Política de privacidad</p>
-    </a>
-    <a href="">
-      <p>Política de cookies</p>
-    </a>
-  </div>
-  <div class="condiciones-footer">
-    <h4><u>CONDICIONES</u></h4>
-    <a href="">
-      <p>Formas de pago</p>
-    </a>
-    <a href="">
-      <p>Garantias y Devoluciones</p>
-    </a>
-    <a href="">
-      <p>Gastos de envío</p>
-    </a>
-    <a href="">
-      <p>Plazos de entrega</p>
-    </a>
-  </div>
-  <div class="contacto-footer">
-    <h4><u>CONTACTO</u></h4>
-    <a href="">
-      <p><i class="fas fa-envelope"></i>info@ryujin.com</p>
-    </a>
-  </div>
-  <div class="copy-footer">
-    <p>Copyright © 2025 Ryujin. Diseñado por Javier Galán Cortés</p>
-  </div>
-</footer>
 
 </html>
