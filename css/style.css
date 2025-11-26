@@ -1126,19 +1126,175 @@ button[type="button"] {
   text-align: center;
   background: var(--cian-500);
   color: white;
-  padding: 12px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
 }
 
-.btn-pagar:hover {
-  background: var(--cian-300);
-  color: var(--cian-700);
+/* ====================================
+   MEDIA QUERIES (RESPONSIVE)
+==================================== */
+
+/* Tablet y pantallas medianas (hasta 1024px) */
+@media (max-width: 1024px) {
+  .novedades> :nth-child(n+2) {
+    gap: 50px;
+    padding: 0 40px;
+  }
+
+  .productos-relacionados>div:nth-child(2) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .producto {
+    grid-template-columns: 1fr;
+  }
+
+  .img-producto {
+    margin: 0;
+    padding: 20px;
+  }
+
+  .compra-producto {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .compra-producto .acciones {
+    justify-content: center;
+  }
 }
 
-.carrito-vacio {
-  padding: 20px;
-  text-align: center;
-  color: var(--cian-700);
+/* Móviles grandes y Tablets pequeñas (hasta 768px) */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .logo img {
+    height: 60px;
+  }
+
+  .buscador {
+    width: 100%;
+    margin: 0;
+  }
+
+  .buscador input {
+    width: 100%;
+  }
+
+  .icons {
+    width: 100%;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  .indice ul {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .indice ul li a {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .carrusel {
+    height: 300px;
+  }
+
+  .novedades> :nth-child(n+2) {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 0 20px;
+  }
+
+  footer {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 20px;
+  }
+
+  .copy-footer {
+    grid-column: span 2;
+  }
+
+  .perfil,
+  .admin {
+    flex-direction: column;
+    margin: 15px;
+  }
+
+  .menu-lateral {
+    width: 100%;
+    position: static;
+  }
+
+  .contenido-perfil,
+  .contenido-admin {
+    min-height: auto;
+  }
+
+  .drawer,
+  #drawer-carrito {
+    width: 100%;
+    right: -100%;
+  }
+
+  .direcciones-grid {
+    flex-direction: column;
+  }
+}
+
+/* Móviles (hasta 480px) - iPhone 12 Pro Max entra aquí (~428px) */
+@media (max-width: 480px) {
+  .carrusel {
+    height: 200px;
+  }
+
+  .novedades> :nth-child(n+2) {
+    grid-template-columns: 1fr;
+    padding: 0 15px;
+  }
+
+  .productos-relacionados>div:nth-child(2) {
+    grid-template-columns: 1fr;
+  }
+
+  footer {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  footer>div {
+    text-align: center;
+  }
+
+  .copy-footer {
+    grid-column: span 1;
+  }
+
+  .img-producto img {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .compra-producto .acciones {
+    flex-direction: column;
+  }
+
+  .compra-producto .cantidad {
+    justify-content: center;
+  }
+
+  .login-popup {
+    width: 280px;
+    right: 50%;
+    transform: translateX(50%);
+    top: 50px;
+  }
+
+  .menu-usuario {
+    right: 50%;
+    transform: translateX(50%);
+  }
 }
