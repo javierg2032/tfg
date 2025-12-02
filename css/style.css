@@ -1126,6 +1126,215 @@ button[type="button"] {
   text-align: center;
   background: var(--cian-500);
   color: white;
+  padding: 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+
+.drawer-footer {
+  padding: 1rem 1.5rem;
+  border-top: 2px solid #2ab7ca;
+  text-align: center;
+}
+
+.drawer-footer .btn {
+  display: inline-block;
+  margin-top: 10px;
+  background-color: #2ab7ca;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.drawer-footer .btn:hover {
+  background-color: #038d9c;
+}
+
+
+.item-carrito {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ff0967;
+}
+
+.item-carrito img {
+  border-radius: 5px;
+  height: 150px;
+  width: auto;
+}
+
+/* =========================
+   Estilos globales de botones y etiquetas
+   Se añaden para unificar apariencia en todo el proyecto
+   ========================= */
+
+/* Etiquetas (labels) de formularios */
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--cian-700);
+}
+
+/* Clase genérica de botón usada en admin y otros lugares */
+.btn {
+  display: inline-block;
+  background-color: var(--cian-500);
+  color: var(--cian-50);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.18s ease, transform 0.08s ease;
+}
+
+.btn:hover {
+  background-color: var(--cian-300);
+  color: var(--cian-700);
+  transform: translateY(-1px);
+}
+
+/* Variantes */
+.btn-outline {
+  background: transparent;
+  color: var(--cian-700);
+  border: 2px solid var(--cian-500);
+}
+
+.btn-danger {
+  background: var(--rojo-500);
+  color: var(--rojo-50);
+}
+
+/* Botones pequeños (iconos) */
+.btn-sm {
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  border-radius: 5px;
+}
+
+/* Asegurar coherencia en inputs y selects cuando estén junto a botones */
+input[type="submit"],
+input[type="button"],
+button[type="submit"],
+button[type="button"] {
+  font-family: inherit;
+}
+
+/* ====================================
+   Carrito Drawer Styles
+==================================== */
+.lista-carrito {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px;
+}
+
+.item-carrito {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  color: var(--cian-700);
+}
+
+.item-info .precio {
+  margin: 0;
+  font-weight: bold;
+  color: var(--cian-500);
+}
+
+.item-controles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0f0f0;
+  border-radius: 5px;
+  padding: 2px;
+}
+
+.btn-cantidad {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px 8px;
+  color: var(--cian-700);
+}
+
+.btn-cantidad:hover {
+  color: var(--cian-500);
+}
+
+.btn-eliminar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e74c3c;
+  font-size: 1.1rem;
+}
+
+.carrito-footer {
+  padding: 20px;
+  border-top: 2px solid var(--cian-500);
+  margin-top: auto;
+}
+
+.carrito-footer .total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.btn-pagar {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--cian-500);
+  color: white;
+  padding: 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.btn-pagar:hover {
+  background: var(--cian-300);
+  color: var(--cian-700);
+}
+
+.carrito-vacio {
+  padding: 20px;
+  text-align: center;
+  color: var(--cian-700);
 }
 
 /* ====================================
