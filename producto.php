@@ -8,7 +8,7 @@ if (isset($_GET['id'])) {
   $id = intval($_GET['id']); // seguridad: evitar inyección SQL
 
   // Consulta a la base de datos usando PDO
-  $sql = "SELECT nombre, precio, imagen, descripcion ,stock
+  $sql = "SELECT nombre, precio, imagen, descripcion, stock, id_categoria
             FROM productos 
             WHERE id_producto = :id";
 
@@ -161,12 +161,12 @@ if (isset($_GET['id'])) {
 
         $sql_rel = "SELECT id_producto, nombre, precio, imagen 
             FROM productos 
-            WHERE id_producto != :id 
-            ORDER BY RAND() 
+            WHERE id_producto != :id AND id_categoria = :id_categoria
+            ORDER BY RAND(id_producto + :seed) 
             LIMIT 4";
 
         $stmt = $pdo->prepare($sql_rel);
-        $stmt->execute(['id' => $id_producto]);
+        $stmt->execute(['id' => $id_producto, 'id_categoria' => $producto['id_categoria'], 'seed' => $id_producto]);
         $relacionados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($relacionados as $rel) {

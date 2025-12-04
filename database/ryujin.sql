@@ -219,6 +219,46 @@ INSERT INTO `usuarios_direcciones` (`id_usuario_direccion`, `id_usuario`, `id_di
 (2, 4, 2, 1),
 (3, 4, 3, 1);
 
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `pedidos`
+--
+
+CREATE TABLE `pedidos` (
+  `id_pedido` int(11) NOT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  `total` decimal(10,2) NOT NULL,
+  `estado` varchar(50) NOT NULL DEFAULT 'pendiente',
+  `id_direccion` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `usuario_pedidos`
+--
+
+CREATE TABLE `usuario_pedidos` (
+  `id_usuario_pedido` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `id_pedido` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalles_pedido`
+--
+
+CREATE TABLE `detalles_pedido` (
+  `id_detalle` int(11) NOT NULL,
+  `id_pedido` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Índices para tablas volcadas
 --
@@ -282,6 +322,29 @@ ALTER TABLE `usuarios_direcciones`
   ADD KEY `id_tipo` (`id_tipo`);
 
 --
+-- Indices de la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  ADD PRIMARY KEY (`id_pedido`),
+  ADD KEY `id_direccion` (`id_direccion`);
+
+--
+-- Indices de la tabla `usuario_pedidos`
+--
+ALTER TABLE `usuario_pedidos`
+  ADD PRIMARY KEY (`id_usuario_pedido`),
+  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `id_pedido` (`id_pedido`);
+
+--
+-- Indices de la tabla `detalles_pedido`
+--
+ALTER TABLE `detalles_pedido`
+  ADD PRIMARY KEY (`id_detalle`),
+  ADD KEY `id_pedido` (`id_pedido`),
+  ADD KEY `id_producto` (`id_producto`);
+
+--
 -- AUTO_INCREMENT de las tablas volcadas
 --
 
@@ -334,6 +397,24 @@ ALTER TABLE `usuarios_direcciones`
   MODIFY `id_usuario_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT de la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  MODIFY `id_pedido` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `usuario_pedidos`
+--
+ALTER TABLE `usuario_pedidos`
+  MODIFY `id_usuario_pedido` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `detalles_pedido`
+--
+ALTER TABLE `detalles_pedido`
+  MODIFY `id_detalle` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Restricciones para tablas volcadas
 --
 
@@ -357,6 +438,27 @@ ALTER TABLE `usuarios_direcciones`
   ADD CONSTRAINT `usuarios_direcciones_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
   ADD CONSTRAINT `usuarios_direcciones_ibfk_2` FOREIGN KEY (`id_direccion`) REFERENCES `direcciones` (`id_direccion`) ON DELETE CASCADE,
   ADD CONSTRAINT `usuarios_direcciones_ibfk_3` FOREIGN KEY (`id_tipo`) REFERENCES `tipos_direccion` (`id_tipo`);
+
+--
+-- Filtros para la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`id_direccion`) REFERENCES `direcciones` (`id_direccion`);
+
+--
+-- Filtros para la tabla `usuario_pedidos`
+--
+ALTER TABLE `usuario_pedidos`
+  ADD CONSTRAINT `usuario_pedidos_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
+  ADD CONSTRAINT `usuario_pedidos_ibfk_2` FOREIGN KEY (`id_pedido`) REFERENCES `pedidos` (`id_pedido`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `detalles_pedido`
+--
+ALTER TABLE `detalles_pedido`
+  ADD CONSTRAINT `detalles_pedido_ibfk_1` FOREIGN KEY (`id_pedido`) REFERENCES `pedidos` (`id_pedido`) ON DELETE CASCADE,
+  ADD CONSTRAINT `detalles_pedido_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -74,7 +74,7 @@ foreach ($carrito as $id => $p) {
                 </tbody>
             </table>
             <p class="total">Total: <?php echo number_format($total, 2, ',', '.'); ?> €</p>
-            <p><a href="index.php">Seguir comprando</a> | <a href="#">Ir a pagar</a></p>
+            <p><a href="index.php">Seguir comprando</a> | <a href="checkout.php">Ir a pagar</a></p>
         <?php endif; ?>
     </main>
 </body>
