@@ -442,7 +442,7 @@ if (isset($_SESSION['usuario_id'])) {
             <span id="cerrar-drawer-carrito" class="cerrar">&times;</span>
         </div>
         <div class="drawer-body" id="contenido-carrito">
-            <?php include 'php/ver_carrito_fragment.php'; ?>
+            <?php include 'php/muestra_carrito.php'; ?>
         </div>
     </div>
 

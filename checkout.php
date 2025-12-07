@@ -77,12 +77,12 @@ $direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         <?php endif; ?>
 
-        <div class="checkout-container" style="display: flex; gap: 40px; flex-wrap: wrap;">
+        <div class="checkout-container">
             
             <!-- Resumen del pedido -->
-            <div class="resumen-pedido" style="flex: 1; min-width: 300px;">
+            <div class="resumen-pedido">
                 <h3>Resumen del Pedido</h3>
-                <table class="tabla-carrito" style="width: 100%;">
+                <table class="tabla-carrito">
                     <thead>
                         <tr>
                             <th>Producto</th>
@@ -93,7 +93,12 @@ $direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody>
                         <?php foreach ($carrito as $item): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($item['nombre']); ?></td>
+                                <td>
+                                    <div class="producto-checkout">
+                                        <img src="/tfg<?php echo htmlspecialchars($item['imagen']); ?>" alt="<?php echo htmlspecialchars($item['nombre']); ?>">
+                                        <span><?php echo htmlspecialchars($item['nombre']); ?></span>
+                                    </div>
+                                </td>
                                 <td><?php echo $item['cantidad']; ?></td>
                                 <td><?php echo number_format($item['precio'] * $item['cantidad'], 2, ',', '.'); ?> €</td>
                             </tr>
@@ -106,7 +111,7 @@ $direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <!-- Selección de dirección -->
-            <div class="seleccion-direccion" style="flex: 1; min-width: 300px;">
+            <div class="seleccion-direccion">
                 <h3>Selecciona una dirección de envío</h3>
                 
                 <?php if (empty($direcciones)): ?>
@@ -116,9 +121,9 @@ $direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <form action="php/crea_pedido.php" method="POST">
                         <div class="lista-direcciones-radio">
                             <?php foreach ($direcciones as $index => $dir): ?>
-                                <div class="direccion-radio-item" style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="radio" name="id_direccion" value="<?php echo $dir['id_direccion']; ?>" <?php echo $index === 0 ? 'checked' : ''; ?> required style="margin-top: 5px;">
+                                <div class="direccion-radio-item">
+                                    <label>
+                                        <input type="radio" name="id_direccion" value="<?php echo $dir['id_direccion']; ?>" <?php echo $index === 0 ? 'checked' : ''; ?> required>
                                         <div>
                                             <strong><?php echo htmlspecialchars($dir['nombre'] . ' ' . $dir['apellido']); ?></strong><br>
                                             <?php echo htmlspecialchars($dir['calle']); ?><br>
@@ -130,7 +135,7 @@ $direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php endforeach; ?>
                         </div>
 
-                        <button type="submit" class="btn" style="width: 100%; margin-top: 20px; font-size: 1.1em;">Confirmar Pedido</button>
+                        <button type="submit" class="btn btn-confirmar">Confirmar Pedido</button>
                     </form>
                 <?php endif; ?>
             </div>
