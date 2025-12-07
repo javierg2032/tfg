@@ -1171,6 +1171,82 @@ button[type="button"] {
 }
 
 /* ====================================
+   Checkout
+==================================== */
+.checkout-page .checkout-container {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.checkout-page .resumen-pedido,
+.checkout-page .seleccion-direccion {
+  flex: 1;
+  min-width: 300px;
+}
+
+.checkout-page .tabla-carrito {
+  width: 100%;
+}
+
+.producto-checkout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.producto-checkout img {
+  width: 200px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.direccion-radio-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.direccion-radio-item label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.direccion-radio-item input[type="radio"] {
+  margin-top: 5px;
+  width: auto;
+}
+
+.seleccion-direccion .btn-confirmar {
+  width: 100%;
+  margin-top: 20px;
+  font-size: 1.1em;
+}
+
+/* ====================================
+   Cart Drawer Controls
+==================================== */
+.cantidad-control form {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.cantidad-control span {
+  margin: 0 5px;
+}
+
+.item-controles .form-eliminar {
+  display: inline;
+  margin: 0;
+}
+
+/* ====================================
    MEDIA QUERIES (RESPONSIVE)
 ==================================== */
 
@@ -1285,6 +1361,28 @@ button[type="button"] {
   .direcciones-grid {
     flex-direction: column;
   }
+
+  /* Checkout Responsive */
+  .checkout-page .checkout-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .checkout-page .resumen-pedido,
+  .checkout-page .seleccion-direccion {
+    min-width: 100%;
+  }
+
+  .checkout-page .tabla-carrito th,
+  .checkout-page .tabla-carrito td {
+    padding: 8px 4px;
+    font-size: 0.9em;
+  }
+
+  .producto-checkout img {
+    width: 60px;
+    height: 60px;
+  }
 }
 
 /* Móviles (hasta 480px) - iPhone 12 Pro Max entra aquí (~428px) */
@@ -1339,80 +1437,4 @@ button[type="button"] {
     right: 50%;
     transform: translateX(50%);
   }
-}
-
-/* ====================================
-   Checkout
-==================================== */
-.checkout-page .checkout-container {
-  display: flex;
-  gap: 40px;
-  flex-wrap: wrap;
-}
-
-.checkout-page .resumen-pedido,
-.checkout-page .seleccion-direccion {
-  flex: 1;
-  min-width: 300px;
-}
-
-.checkout-page .tabla-carrito {
-  width: 100%;
-}
-
-.producto-checkout {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.producto-checkout img {
-  width: 200px;
-  height: auto;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.direccion-radio-item {
-  margin-bottom: 15px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-.direccion-radio-item label {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  cursor: pointer;
-  margin-bottom: 0;
-}
-
-.direccion-radio-item input[type="radio"] {
-  margin-top: 5px;
-  width: auto;
-}
-
-.seleccion-direccion .btn-confirmar {
-  width: 100%;
-  margin-top: 20px;
-  font-size: 1.1em;
-}
-
-/* ====================================
-   Cart Drawer Controls
-==================================== */
-.cantidad-control form {
-  display: flex;
-  align-items: center;
-  margin: 0;
-}
-
-.cantidad-control span {
-  margin: 0 5px;
-}
-
-.item-controles .form-eliminar {
-  display: inline;
-  margin: 0;
 }
