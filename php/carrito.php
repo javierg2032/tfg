@@ -2,7 +2,7 @@
 session_start();
 require 'config.php';
 
-header('Content-Type: application/json');
+// header('Content-Type: application/json'); // Removed JSON header
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_producto = intval($_POST['id_producto']);
@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$producto) {
-        echo json_encode(['status' => 'error', 'message' => 'Producto no encontrado']);
+        $_SESSION['mensaje_carrito'] = 'Producto no encontrado';
+        header('Location: ../index.php');
         exit;
     }
 
@@ -41,7 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
     }
 
-    echo json_encode(['status' => 'success', 'message' => 'Producto añadido al carrito', 'carrito' => $_SESSION['carrito']]);
+    $_SESSION['mensaje_carrito'] = 'Producto añadido al carrito';
+    $referer = $_SERVER['HTTP_REFERER'] ?? '../index.php';
+    header('Location: ' . $referer);
     exit;
 }
 ?>

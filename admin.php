@@ -183,7 +183,7 @@ if (empty($_SESSION['es_admin']) || $_SESSION['es_admin'] !== true) {
                     <form method="post" action="php/elimina_producto.php"
                       onsubmit="return confirm('¿Eliminar este producto?')" style="display:inline">
                       <input type="hidden" name="id_producto" value="<?php echo $row['id_producto']; ?>">
-                      <button type="submit" class="btn" title="Eliminar"><i class='fas fa-trash'></i></button>
+                      <button type="submit" class="btn-delete" title="Eliminar"><i class='fas fa-trash'></i></button>
                     </form>
                   </td>
                 </tr>

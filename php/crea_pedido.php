@@ -2,8 +2,7 @@
 session_start();
 require 'config.php';
 
-// Eliminar header JSON
-// header('Content-Type: application/json');
+
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $_SESSION['mensaje_error'] = 'Método no permitido';
@@ -20,8 +19,6 @@ if (!isset($_SESSION['usuario_id'])) {
 $id_usuario = $_SESSION['usuario_id'];
 
 // Obtener datos del POST (standard form submit)
-// $input = json_decode(file_get_contents('php://input'), true);
-// $id_direccion = $input['id_direccion'] ?? null;
 $id_direccion = $_POST['id_direccion'] ?? null;
 
 if (!$id_direccion) {

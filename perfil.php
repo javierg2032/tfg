@@ -56,7 +56,7 @@ if (isset($_SESSION['usuario_id'])) {
     $check = $pdo->query("SHOW TABLES LIKE 'pedidos'");
     if ($check && $check->rowCount() > 0) {
         $pedidos_table = true;
-        $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE id_usuario = :id ORDER BY fecha DESC");
+        $stmt = $pdo->prepare("SELECT p.* FROM pedidos p JOIN usuario_pedidos up ON p.id_pedido = up.id_pedido WHERE up.id_usuario = :id ORDER BY p.fecha DESC");
         $stmt->execute(['id' => $uid]);
         $pedidos = $stmt->fetchAll();
     }
@@ -285,7 +285,7 @@ if (isset($_SESSION['usuario_id'])) {
                                                                         <form method="post" action="php/direcciones_handler.php" onsubmit="return confirm('¿Eliminar esta dirección?')" style="display:inline">
                                                                             <input type="hidden" name="action" value="delete">
                                                                             <input type="hidden" name="id_usuario_direccion" value="<?php echo htmlspecialchars($dir['id_usuario_direccion']); ?>">
-                                                                            <button type="submit" class="btn" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                                                            <button type="submit" class="btn-delete-dir" title="Eliminar"><i class="fas fa-trash"></i></button>
                                                                         </form>
                                 </div>
                             </div>
@@ -326,7 +326,7 @@ if (isset($_SESSION['usuario_id'])) {
                                                                         <form method="post" action="php/direcciones_handler.php" onsubmit="return confirm('¿Eliminar esta dirección?')" style="display:inline">
                                                                             <input type="hidden" name="action" value="delete">
                                                                             <input type="hidden" name="id_usuario_direccion" value="<?php echo htmlspecialchars($dir['id_usuario_direccion']); ?>">
-                                                                            <button type="submit" class="btn" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                                                            <button type="submit" class="btn-delete-dir" title="Eliminar"><i class="fas fa-trash"></i></button>
                                                                         </form>
                                 </div>
                             </div>
@@ -364,7 +364,7 @@ if (isset($_SESSION['usuario_id'])) {
                                                         <form method="post" action="php/direcciones_handler.php" onsubmit="return confirm('¿Eliminar esta dirección?')" style="display:inline">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="id_usuario_direccion" value="<?php echo htmlspecialchars($dir['id_usuario_direccion']); ?>">
-                                                            <button type="submit" class="btn" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                                            <button type="submit" class="btn-delete-dir" title="Eliminar"><i class="fas fa-trash"></i></button>
                                                         </form>
                         </div>
                     </div>

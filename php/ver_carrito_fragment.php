@@ -48,6 +48,6 @@ foreach ($carrito as $id => $p) {
             <span>Total:</span>
             <span><?php echo number_format($total, 2, ',', '.'); ?> €</span>
         </div>
-        <a href="carrito.php" class="btn btn-pagar">Tramitar pedido</a>
+        <a href="checkout.php" class="btn btn-pagar">Tramitar pedido</a>
     </div>
 <?php endif; ?>
