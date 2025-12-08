@@ -1,4 +1,85 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Lógica para el modal de detalles de pedido en perfil.php
+    const modalDetalles = document.getElementById('modal-detalles-pedido');
+    if (modalDetalles) {
+        const spanCerrar = document.getElementById('cerrar-modal-detalles');
+        const detalleId = document.getElementById('detalle-id-pedido');
+        const listaProductos = document.getElementById('detalle-lista-productos');
+        const divEnvio = document.getElementById('detalle-direccion-envio');
+        const divFacturacion = document.getElementById('detalle-direccion-facturacion');
+        const spanEstado = document.getElementById('detalle-estado');
+        const spanTotal = document.getElementById('detalle-total');
+
+        // Cerrar modal
+        spanCerrar.onclick = function() {
+            modalDetalles.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == modalDetalles) {
+                modalDetalles.style.display = "none";
+            }
+        }
+
+        // Click en botones "Ver detalles"
+        document.querySelectorAll('.btn-ver-detalles').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const idPedido = this.getAttribute('data-id');
+                // Mostrar modal (cargando...)
+                modalDetalles.style.display = "block";
+                detalleId.textContent = idPedido;
+                listaProductos.innerHTML = '<li>Cargando...</li>';
+                divEnvio.textContent = '...';
+                divFacturacion.textContent = '...';
+                spanEstado.textContent = '...';
+                spanTotal.textContent = '...';
+
+                try {
+                    const response = await fetch(`php/get_pedido_detalles.php?id=${idPedido}`);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        alert(data.error);
+                        modalDetalles.style.display = "none";
+                        return;
+                    }
+
+                    // Rellenar datos
+                    spanEstado.textContent = data.estado;
+                    spanTotal.textContent = data.total;
+
+                    // Direcciones
+                    const formatDir = (d) => {
+                        if (!d) return 'No disponible (Misma que envío)';
+                        return `<strong>${d.nombre}</strong><br>${d.direccion}<br>${d.ciudad}<br>${d.estado}`;
+                    };
+
+                    divEnvio.innerHTML = formatDir(data.envio);
+                    divFacturacion.innerHTML = formatDir(data.facturacion);
+
+                    // Productos
+                    listaProductos.innerHTML = '';
+                    data.productos.forEach(prod => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <img src="/tfg${prod.imagen}" alt="${prod.nombre}">
+                            <div class="producto-info">
+                                <div><strong>${prod.nombre}</strong></div>
+                                <div>${prod.cantidad} x ${prod.precio_unitario} €</div>
+                            </div>
+                            <div><strong>${(prod.cantidad * prod.precio_unitario).toFixed(2)} €</strong></div>
+                        `;
+                        listaProductos.appendChild(li);
+                    });
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    listaProductos.innerHTML = '<li>Error al cargar los detalles.</li>';
+                }
+            });
+        });
+    }
+
+    // --- CÓDIGO EXISTENTE ---
   console.log("Script cargado");
 
   /* === Popup Usuario === */
@@ -117,13 +198,32 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   if (menuItemsPerfil.length && seccionesPerfil.length) {
+    // Función para activar sección
+    function activarSeccion(id) {
+        menuItemsPerfil.forEach((i) => {
+            if(i.getAttribute("data-seccion") === id) i.classList.add("activo");
+            else i.classList.remove("activo");
+        });
+        seccionesPerfil.forEach((sec) => {
+            if(sec.id === id) sec.classList.add("activo");
+            else sec.classList.remove("activo");
+        });
+        localStorage.setItem('perfil_seccion_activa', id);
+    }
+
+    // Cargar sección guardada
+    const seccionGuardada = localStorage.getItem('perfil_seccion_activa');
+    if (seccionGuardada) {
+        const itemExist = document.querySelector(`.menu-lateral li[data-seccion="${seccionGuardada}"]`);
+        if (itemExist) {
+            activarSeccion(seccionGuardada);
+        }
+    }
+
     menuItemsPerfil.forEach((item) => {
       item.addEventListener("click", () => {
         const seccionID = item.getAttribute("data-seccion");
-        menuItemsPerfil.forEach((i) => i.classList.remove("activo"));
-        item.classList.add("activo");
-        seccionesPerfil.forEach((sec) => sec.classList.remove("activo"));
-        document.getElementById(seccionID)?.classList.add("activo");
+        activarSeccion(seccionID);
       });
     });
   }
@@ -295,11 +395,35 @@ document.addEventListener("DOMContentLoaded", () => {
       drawerDir.classList.remove("abierto")
     );
 
+  // Botón para nueva dirección
+  if (btnNuevoDir) {
+      btnNuevoDir.addEventListener("click", () => {
+          document.getElementById("dir-action").value = "add";
+          document.getElementById("dir-id-ud").value = "";
+          document.getElementById("dir-id").value = "";
+          // Limpiar campos
+          document.getElementById("dir-nombre").value = "";
+          document.getElementById("dir-apellido").value = "";
+          document.getElementById("dir-calle").value = "";
+          document.getElementById("dir-ciudad").value = "";
+          document.getElementById("dir-codigo_postal").value = "";
+          document.getElementById("dir-provincia").value = "";
+          document.getElementById("dir-pais").value = "";
+          
+          const factChk = document.getElementById("dir-facturacion");
+          if(factChk) factChk.checked = false;
+
+          document.getElementById("drawer-direccion-titulo").textContent = "Nueva dirección";
+          drawerDir.classList.add("abierto");
+      });
+  }
+
   // Cerrar drawer al hacer click fuera
   window.addEventListener("click", (e) => {
     if (
       !e.target.closest("#drawer-direccion") &&
-      !e.target.closest("#btn-nueva-direccion")
+      !e.target.closest("#btn-nueva-direccion") &&
+      !e.target.closest(".btn-edit-dir")
     ) {
       drawerDir?.classList.remove("abierto");
     }
@@ -308,15 +432,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Evitar que el drawer se cierre al hacer click dentro
   drawerDir?.addEventListener("click", (e) => e.stopPropagation());
 
-  // El formulario de direcciones ahora se envía por POST normal al servidor (php/direcciones_handler.php)
-  // No se ejecuta ninguna lógica AJAX aquí. El servidor redirige de vuelta a perfil.php y muestra mensajes en sesión.
-
-  // Adjuntar sólo los listeners necesarios para editar cuando se generen elementos dinámicos
-  function attachListeners(item) {
-    const editBtn = item.querySelector(".btn-edit-dir");
-    if (editBtn) {
+  // Listeners para botones de editar
+  document.querySelectorAll(".btn-edit-dir").forEach(editBtn => {
       editBtn.addEventListener("click", (e) => {
         e.preventDefault();
+        e.stopPropagation(); // Evitar que cierre el drawer inmediato si hubiera conflicto
+        
         document.getElementById("dir-action").value = "edit";
         document.getElementById("dir-id-ud").value =
           editBtn.dataset.id_usuario_direccion || "";
@@ -335,15 +456,17 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("dir-provincia").value =
           editBtn.dataset.provincia || "";
         document.getElementById("dir-pais").value = editBtn.dataset.pais || "";
+        
         const factChk = document.getElementById("dir-facturacion");
         if (factChk) factChk.checked = editBtn.dataset.facturacion === "1";
+        
         const tipoSel = document.getElementById("dir-id-tipo");
         if (tipoSel && editBtn.dataset.id_tipo)
           tipoSel.value = editBtn.dataset.id_tipo;
+          
         document.getElementById("drawer-direccion-titulo").textContent =
           "Editar dirección";
         drawerDir.classList.add("abierto");
       });
-    }
-  }
+  });
 });

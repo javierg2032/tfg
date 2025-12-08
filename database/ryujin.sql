@@ -230,7 +230,8 @@ CREATE TABLE `pedidos` (
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
   `total` decimal(10,2) NOT NULL,
   `estado` varchar(50) NOT NULL DEFAULT 'pendiente',
-  `id_direccion` int(11) NOT NULL
+  `id_direccion` int(11) NOT NULL,
+  `id_direccion_facturacion` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -326,7 +327,8 @@ ALTER TABLE `usuarios_direcciones`
 --
 ALTER TABLE `pedidos`
   ADD PRIMARY KEY (`id_pedido`),
-  ADD KEY `id_direccion` (`id_direccion`);
+  ADD KEY `id_direccion` (`id_direccion`),
+  ADD KEY `id_direccion_facturacion` (`id_direccion_facturacion`);
 
 --
 -- Indices de la tabla `usuario_pedidos`
@@ -443,7 +445,8 @@ ALTER TABLE `usuarios_direcciones`
 -- Filtros para la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`id_direccion`) REFERENCES `direcciones` (`id_direccion`);
+  ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`id_direccion`) REFERENCES `direcciones` (`id_direccion`),
+  ADD CONSTRAINT `pedidos_ibfk_fact` FOREIGN KEY (`id_direccion_facturacion`) REFERENCES `direcciones` (`id_direccion`);
 
 --
 -- Filtros para la tabla `usuario_pedidos`

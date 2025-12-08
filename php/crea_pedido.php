@@ -45,8 +45,20 @@ try {
 
     // 2. Insertar pedido
     // Corregido: La tabla pedidos no tiene id_usuario, se usa tabla intermedia.
-    $stmt = $pdo->prepare("INSERT INTO pedidos (total, id_direccion, fecha) VALUES (:total, :id_direccion, NOW())");
-    $stmt->execute(['total' => $total, 'id_direccion' => $id_direccion]);
+    // MODIFICADO: Añadir id_direccion_facturacion
+    $id_direccion_facturacion = $_POST['id_direccion_facturacion'] ?? null;
+    
+    // Si no se envía facturación, usamos la de envío (fallback básico, aunque debería enviarse si el form lo tiene)
+    if (!$id_direccion_facturacion) {
+        $id_direccion_facturacion = $id_direccion;
+    }
+
+    $stmt = $pdo->prepare("INSERT INTO pedidos (total, id_direccion, id_direccion_facturacion, fecha) VALUES (:total, :id_direccion, :id_direccion_facturacion, NOW())");
+    $stmt->execute([
+        'total' => $total, 
+        'id_direccion' => $id_direccion,
+        'id_direccion_facturacion' => $id_direccion_facturacion
+    ]);
     $id_pedido = $pdo->lastInsertId();
 
     // 3. Insertar usuario_pedidos

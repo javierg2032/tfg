@@ -222,9 +222,121 @@ if (isset($_SESSION['usuario_id'])) {
                         <?php if (!empty($p['detalles'])): ?>
                         <div>Detalles: <?php echo htmlspecialchars($p['detalles']); ?></div>
                         <?php endif; ?>
+                        <button class="btn-ver-detalles" data-id="<?php echo $p['id_pedido']; ?>">Ver detalles</button>
                     </li>
                     <?php endforeach; ?>
                 </ul>
+
+                <!-- Modal Detalles Pedido -->
+                <div id="modal-detalles-pedido" class="modal">
+                    <div class="modal-content">
+                        <span class="cerrar-modal" id="cerrar-modal-detalles">&times;</span>
+                        <h3>Detalles del Pedido #<span id="detalle-id-pedido"></span></h3>
+                        <div id="detalle-contenido">
+                            <div class="detalle-seccion">
+                                <h4>Productos</h4>
+                                <ul id="detalle-lista-productos" class="lista-productos-detalle"></ul>
+                            </div>
+                            <div class="detalle-grid-direcciones">
+                                <div class="detalle-seccion">
+                                    <h4>Dirección de Envío</h4>
+                                    <p id="detalle-direccion-envio"></p>
+                                </div>
+                                <div class="detalle-seccion">
+                                    <h4>Dirección de Facturación</h4>
+                                    <p id="detalle-direccion-facturacion"></p>
+                                </div>
+                            </div>
+                            <div class="detalle-seccion">
+                                <h4>Resumen</h4>
+                                <p><strong>Estado:</strong> <span id="detalle-estado"></span></p>
+                                <p><strong>Total:</strong> <span id="detalle-total"></span> €</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    /* Estilos para el modal de detalles (se pueden mover a css/style.css) */
+                    .modal {
+                        display: none; 
+                        position: fixed; 
+                        z-index: 2000; 
+                        left: 0;
+                        top: 0;
+                        width: 100%; 
+                        height: 100%; 
+                        overflow: auto; 
+                        background-color: rgba(0,0,0,0.5); 
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .modal-content {
+                        background-color: #fff;
+                        margin: 10% auto; 
+                        padding: 20px;
+                        border: 1px solid #888;
+                        width: 80%; 
+                        max-width: 800px;
+                        border-radius: 8px;
+                        position: relative;
+                        color: #333;
+                    }
+                    .cerrar-modal {
+                        color: #aaa;
+                        float: right;
+                        font-size: 28px;
+                        font-weight: bold;
+                        cursor: pointer;
+                    }
+                    .cerrar-modal:hover,
+                    .cerrar-modal:focus {
+                        color: black;
+                        text-decoration: none;
+                        cursor: pointer;
+                    }
+                    .detalle-grid-direcciones {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                        margin-bottom: 20px;
+                    }
+                    .lista-productos-detalle {
+                        list-style: none;
+                        padding: 0;
+                    }
+                    .lista-productos-detalle li {
+                        display: flex;
+                        align-items: center;
+                        border-bottom: 1px solid #eee;
+                        padding: 10px 0;
+                    }
+                    .lista-productos-detalle img {
+                        width: 50px;
+                        height: 50px;
+                        object-fit: contain;
+                        margin-right: 15px;
+                    }
+                    .producto-info {
+                        flex-grow: 1;
+                    }
+                    @media (max-width: 600px) {
+                        .detalle-grid-direcciones {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    .btn-ver-detalles {
+                        background-color: #333;
+                        color: white;
+                        border: none;
+                        padding: 5px 10px;
+                        cursor: pointer;
+                        border-radius: 4px;
+                        margin-top: 5px;
+                    }
+                    .btn-ver-detalles:hover {
+                        background-color: #555;
+                    }
+                </style>
                 <?php endif; ?>
                 <?php endif; ?>
                 <?php endif; ?>
