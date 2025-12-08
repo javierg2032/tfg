@@ -100,7 +100,6 @@ if (empty($_SESSION['es_admin']) || $_SESSION['es_admin'] !== true) {
         <li data-seccion="productos" class="activo"><i class="fas fa-box"></i> Gestionar productos</li>
         <li data-seccion="pedidos"><i class="fas fa-truck-fast"></i> Ver pedidos</li>
         <li data-seccion="usuarios"><i class="fas fa-users"></i> Gestionar usuarios</li>
-        <li data-seccion="estadisticas"><i class="fas fa-chart-line"></i> Estadísticas</li>
         <li data-seccion="salir"><i class="fas fa-arrow-right-from-bracket"></i> Salir</li>
       </ul>
     </div>
@@ -204,21 +203,149 @@ if (empty($_SESSION['es_admin']) || $_SESSION['es_admin'] !== true) {
       <!-- Otras secciones del admin -->
       <div id="pedidos" class="seccion">
         <h2>Pedidos</h2>
-        <p>Aquí se listarán los pedidos realizados por los usuarios.</p>
+        <p>Listado de todos los pedidos realizados.</p>
+        <table class="tabla-admin">
+          <thead>
+            <tr>
+              <th>ID Pedido</th>
+              <th>Usuario</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $sql_pedidos = "SELECT p.id_pedido, p.fecha, p.estado, p.total, u.usuario 
+                            FROM pedidos p 
+                            LEFT JOIN usuario_pedidos up ON p.id_pedido = up.id_pedido 
+                            LEFT JOIN usuarios u ON up.id_usuario = u.id_usuario 
+                            ORDER BY p.fecha DESC";
+            $stmt_pedidos = $pdo->query($sql_pedidos);
+
+            if ($stmt_pedidos->rowCount() > 0):
+              while ($pedido = $stmt_pedidos->fetch(PDO::FETCH_ASSOC)):
+                ?>
+                <tr>
+                  <td>#<?php echo htmlspecialchars($pedido['id_pedido']); ?></td>
+                  <td><?php echo htmlspecialchars($pedido['usuario'] ?? 'Anónimo/Eliminado'); ?></td>
+                  <td><?php echo htmlspecialchars($pedido['fecha']); ?></td>
+                  <td><?php echo htmlspecialchars($pedido['estado'] ?? 'N/D'); ?></td>
+                  <td><?php echo htmlspecialchars($pedido['total']); ?>€</td>
+                  <td>
+                    <!-- Aquí podrías agregar un botón para ver detalles si lo deseas -->
+                    <button class="btn-ver-detalles" data-id="<?php echo $pedido['id_pedido']; ?>">Ver</button>
+                  </td>
+                </tr>
+                <?php
+              endwhile;
+            else:
+              ?>
+              <tr>
+                <td colspan="6">No hay pedidos registrados.</td>
+              </tr>
+              <?php
+            endif;
+            ?>
+          </tbody>
+        </table>
       </div>
-      <div id="usuarios" class="seccion">
+     <div id="usuarios" class="seccion">
         <h2>Usuarios registrados</h2>
         <p>Desde aquí podrás eliminar o cambiar el rol de un usuario.</p>
-      </div>
-      <div id="estadisticas" class="seccion">
-        <h2>Estadísticas generales</h2>
-        <p>Ventas, productos más vendidos, usuarios activos, etc.</p>
+        <table class="tabla-admin">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuario</th>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $sql_usuarios = "SELECT id_usuario, usuario, correo, admin FROM usuarios ORDER BY id_usuario ASC";
+            $stmt_usuarios = $pdo->query($sql_usuarios);
+
+            if ($stmt_usuarios->rowCount() > 0):
+              while ($usr = $stmt_usuarios->fetch(PDO::FETCH_ASSOC)):
+                $es_admin_row = (bool)$usr['admin'];
+                $rol_texto = $es_admin_row ? 'Administrador' : 'Usuario';
+                $es_mismo_usuario = ($usr['id_usuario'] == $_SESSION['usuario_id']);
+                ?>
+                <tr>
+                  <td><?php echo $usr['id_usuario']; ?></td>
+                  <td><?php echo htmlspecialchars($usr['usuario']); ?></td>
+                  <td><?php echo htmlspecialchars($usr['correo']); ?></td>
+                  <td><?php echo $rol_texto; ?></td>
+                  <td>
+                    <?php if (!$es_mismo_usuario): ?>
+                      <form method="post" action="php/cambia_rol.php" style="display:inline">
+                        <input type="hidden" name="id_usuario" value="<?php echo $usr['id_usuario']; ?>">
+                        <button type="submit" class="btn-role-toggle" title="Cambiar Rol">
+                          <i class="fas fa-user-shield"></i>
+                        </button>
+                      </form>
+                      <form method="post" action="php/elimina_usuario.php" onsubmit="return confirm('¿Estás seguro de eliminar a este usuario?')" style="display:inline">
+                        <input type="hidden" name="id_usuario" value="<?php echo $usr['id_usuario']; ?>">
+                        <button type="submit" class="btn-delete" title="Eliminar">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    <?php else: ?>
+                      <span style="color: #ccc; font-size: 0.9em;">(Tu cuenta)</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+                <?php
+              endwhile;
+            else:
+              ?>
+              <tr>
+                <td colspan="5">No hay usuarios registrados.</td>
+              </tr>
+              <?php
+            endif;
+            ?>
+          </tbody>
+        </table>
       </div>
       <div id="salir" class="seccion">
         <h2>Salir del panel</h2>
         <p><a href="php/logout.php">Cerrar sesión</a></p>
       </div>
     </div>
+
+  <!-- Modal Detalles Pedido -->
+  <div id="modal-detalles-pedido" class="modal">
+    <div class="modal-content">
+      <span class="cerrar-modal" id="cerrar-modal-detalles">&times;</span>
+      <h3>Detalles del Pedido #<span id="detalle-id-pedido"></span></h3>
+      <div id="detalle-contenido">
+        <div class="detalle-seccion">
+          <h4>Productos</h4>
+          <ul id="detalle-lista-productos" class="lista-productos-detalle"></ul>
+        </div>
+        <div class="detalle-grid-direcciones">
+          <div class="detalle-seccion">
+            <h4>Dirección de Envío</h4>
+            <p id="detalle-direccion-envio"></p>
+          </div>
+          <div class="detalle-seccion">
+            <h4>Dirección de Facturación</h4>
+            <p id="detalle-direccion-facturacion"></p>
+          </div>
+        </div>
+        <div class="detalle-seccion">
+            <h4>Resumen</h4>
+            <p><strong>Estado:</strong> <span id="detalle-estado"></span></p>
+            <p><strong>Total:</strong> <span id="detalle-total"></span> €</p>
+        </div>
+      </div>
+    </div>
+  </div>
   </main>
 
 

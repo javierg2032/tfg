@@ -18,12 +18,16 @@ if ($id_pedido === null || $id_pedido === '') {
 }
 
 try {
-    // 1. Verificar si el pedido pertenece al usuario
-    $stmtVerify = $pdo->prepare("SELECT COUNT(*) FROM usuario_pedidos WHERE id_usuario = :uid AND id_pedido = :pid");
-    $stmtVerify->execute(['uid' => $uid, 'pid' => $id_pedido]);
-    if ($stmtVerify->fetchColumn() == 0) {
-        echo json_encode(['error' => 'Pedido no encontrado o no pertenece al usuario']);
-        exit;
+    // 1. Verificar si el pedido pertenece al usuario (o si es admin)
+    $isAdmin = !empty($_SESSION['es_admin']) && $_SESSION['es_admin'] === true;
+    
+    if (!$isAdmin) {
+        $stmtVerify = $pdo->prepare("SELECT COUNT(*) FROM usuario_pedidos WHERE id_usuario = :uid AND id_pedido = :pid");
+        $stmtVerify->execute(['uid' => $uid, 'pid' => $id_pedido]);
+        if ($stmtVerify->fetchColumn() == 0) {
+            echo json_encode(['error' => 'Pedido no encontrado o no pertenece al usuario']);
+            exit;
+        }
     }
 
     // 2. Obtener información general del pedido y direcciones

@@ -708,6 +708,7 @@ footer>div>a>p {
 }
 
 .btn-edit,
+.btn-role-toggle,
 .btn-delete,
 .acciones-direccion .btn-edit-dir,
 .acciones-direccion .btn-delete-dir {
@@ -727,6 +728,12 @@ footer>div>a>p {
   color: var(--verde-500);
 }
 
+.btn-role-toggle {
+  color: var(--verde-500);
+  background: none;
+  border: none;
+}
+
 .btn-delete,
 .acciones-direccion .btn-delete-dir {
   color: var(--rojo-500);
@@ -735,6 +742,7 @@ footer>div>a>p {
 }
 
 .btn-edit:hover,
+.btn-role-toggle:hover,
 .acciones-direccion .btn-edit-dir:hover {
   color: var(--verde-700);
   background-color: var(--verde-300);
@@ -1436,5 +1444,85 @@ button[type="button"] {
   .menu-usuario {
     right: 50%;
     transform: translateX(50%);
+  }
+}
+
+/* ====================================
+   Modal Detalles Pedido
+==================================== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 800px;
+  border-radius: 8px;
+  position: relative;
+  color: #333;
+}
+
+.cerrar-modal {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cerrar-modal:hover,
+.cerrar-modal:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.detalle-grid-direcciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.lista-productos-detalle {
+  list-style: none;
+  padding: 0;
+}
+
+.lista-productos-detalle li {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.lista-productos-detalle img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  margin-right: 15px;
+}
+
+.producto-info {
+  flex-grow: 1;
+}
+
+@media (max-width: 600px) {
+  .detalle-grid-direcciones {
+    grid-template-columns: 1fr;
   }
 }
