@@ -161,7 +161,7 @@ if (isset($_GET['id'])) {
 
         $sql_rel = "SELECT id_producto, nombre, precio, imagen 
             FROM productos 
-            WHERE id_producto != :id AND id_categoria = :id_categoria
+            WHERE id_producto != :ique d AND id_categoria = :id_categoria
             ORDER BY RAND(id_producto + :seed) 
             LIMIT 4";
 

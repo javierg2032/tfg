@@ -37,18 +37,32 @@ try {
 }
 
 if ($use_facturacion_column) {
+    // Direcciones de Envío (facturacion = 0 or NULL)
     $stmt = $pdo->prepare("SELECT d.id_direccion, d.nombre, d.apellido, d.calle, d.ciudad, d.codigo_postal, d.provincia, d.pais
         FROM usuarios_direcciones ud
         JOIN direcciones d ON ud.id_direccion = d.id_direccion
         WHERE ud.id_usuario = :id AND (d.facturacion IS NULL OR d.facturacion = 0)");
+    $stmt->execute(['id' => $uid]);
+    $direccionesEnvio = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Direcciones de Facturación (facturacion = 1)
+    $stmt = $pdo->prepare("SELECT d.id_direccion, d.nombre, d.apellido, d.calle, d.ciudad, d.codigo_postal, d.provincia, d.pais
+        FROM usuarios_direcciones ud
+        JOIN direcciones d ON ud.id_direccion = d.id_direccion
+        WHERE ud.id_usuario = :id AND d.facturacion = 1");
+    $stmt->execute(['id' => $uid]);
+    $direccionesFacturacion = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
+    // Fallback: Todas las direcciones sirven para todo
     $stmt = $pdo->prepare("SELECT d.id_direccion, d.nombre, d.apellido, d.calle, d.ciudad, d.codigo_postal, d.provincia, d.pais
         FROM usuarios_direcciones ud
         JOIN direcciones d ON ud.id_direccion = d.id_direccion
         WHERE ud.id_usuario = :id");
+    $stmt->execute(['id' => $uid]);
+    $allDirs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $direccionesEnvio = $allDirs;
+    $direccionesFacturacion = $allDirs;
 }
-$stmt->execute(['id' => $uid]);
-$direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 <!DOCTYPE html>
@@ -112,33 +126,148 @@ $direcciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- Selección de dirección -->
             <div class="seleccion-direccion">
-                <h3>Selecciona una dirección de envío</h3>
-                
-                <?php if (empty($direcciones)): ?>
-                    <p>No tienes direcciones registradas.</p>
-                    <p><a href="perfil.php" class="btn">Ir a mi perfil para añadir una dirección</a></p>
-                <?php else: ?>
-                    <form action="php/crea_pedido.php" method="POST">
-                        <div class="lista-direcciones-radio">
-                            <?php foreach ($direcciones as $index => $dir): ?>
-                                <div class="direccion-radio-item">
-                                    <label>
-                                        <input type="radio" name="id_direccion" value="<?php echo $dir['id_direccion']; ?>" <?php echo $index === 0 ? 'checked' : ''; ?> required>
-                                        <div>
-                                            <strong><?php echo htmlspecialchars($dir['nombre'] . ' ' . $dir['apellido']); ?></strong><br>
-                                            <?php echo htmlspecialchars($dir['calle']); ?><br>
-                                            <?php echo htmlspecialchars($dir['codigo_postal'] . ' - ' . $dir['ciudad'] . ' (' . $dir['provincia'] . ')'); ?><br>
-                                            <?php echo htmlspecialchars($dir['pais']); ?>
-                                        </div>
-                                    </label>
-                                </div>
+                <form action="php/crea_pedido.php" method="POST" id="form-checkout">
+                    <!-- Sección Envío -->
+                    <h3>Dirección de envío</h3>
+                    <div class="form-group">
+                        <select name="id_direccion" id="select-envio" class="form-control" required onchange="checkNewAddress('envio')">
+                            <option value="">Selecciona una dirección de envío...</option>
+                            <?php foreach ($direccionesEnvio as $dir): ?>
+                                <option value="<?php echo $dir['id_direccion']; ?>">
+                                    <?php echo htmlspecialchars($dir['nombre'] . ' ' . $dir['apellido'] . ' - ' . $dir['calle'] . ', ' . $dir['ciudad']); ?>
+                                </option>
                             <?php endforeach; ?>
-                        </div>
+                            <option value="new">+ Añadir nueva dirección de envío...</option>
+                        </select>
+                    </div>
 
+                    <!-- Sección Facturación -->
+                    <h3 style="margin-top: 20px;">Dirección de facturación</h3>
+                    <div class="form-group">
+                        <select name="id_direccion_facturacion" id="select-facturacion" class="form-control" required onchange="checkNewAddress('facturacion')">
+                            <option value="">Selecciona una dirección de facturación...</option>
+                            <?php foreach ($direccionesFacturacion as $dir): ?>
+                                <option value="<?php echo $dir['id_direccion']; ?>">
+                                    <?php echo htmlspecialchars($dir['nombre'] . ' ' . $dir['apellido'] . ' - ' . $dir['calle'] . ', ' . $dir['ciudad']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                            <option value="new">+ Añadir nueva dirección de facturación...</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top: 30px;">
                         <button type="submit" class="btn btn-confirmar">Confirmar Pedido</button>
-                    </form>
-                <?php endif; ?>
+                    </div>
+                </form>
+
+                <!-- Formularios Ocultos para añadir dirección -->
+                <div id="new-address-forms" style="display: none;">
+                    
+                    <!-- Formulario Envío -->
+                    <div id="form-new-envio" class="modal-address" style="display: none;">
+                        <div class="modal-content">
+                            <span class="close-modal" onclick="closeModal('envio')">&times;</span>
+                            <h4>Nueva Dirección de Envío</h4>
+                            <form action="php/direcciones_handler.php" method="POST">
+                                <input type="hidden" name="action" value="add">
+                                <input type="hidden" name="redirect" value="../checkout.php">
+                                <?php if($use_facturacion_column): ?>
+                                    <input type="hidden" name="facturacion" value="0">
+                                <?php endif; ?>
+                                
+                                <input type="text" name="nombre" placeholder="Nombre" required class="input-full">
+                                <input type="text" name="apellido" placeholder="Apellido" required class="input-full">
+                                <input type="text" name="calle" placeholder="Calle" required class="input-full">
+                                <input type="text" name="ciudad" placeholder="Ciudad" required class="input-full">
+                                <input type="text" name="codigo_postal" placeholder="Código Postal" required class="input-full">
+                                <input type="text" name="provincia" placeholder="Provincia" required class="input-full">
+                                <input type="text" name="pais" placeholder="País" required class="input-full">
+                                
+                                <button type="submit" class="btn">Guardar Dirección</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Formulario Facturación -->
+                    <div id="form-new-facturacion" class="modal-address" style="display: none;">
+                        <div class="modal-content">
+                            <span class="close-modal" onclick="closeModal('facturacion')">&times;</span>
+                            <h4>Nueva Dirección de Facturación</h4>
+                            <form action="php/direcciones_handler.php" method="POST">
+                                <input type="hidden" name="action" value="add">
+                                <input type="hidden" name="redirect" value="../checkout.php">
+                                <?php if($use_facturacion_column): ?>
+                                    <input type="hidden" name="facturacion" value="1">
+                                <?php endif; ?>
+
+                                <input type="text" name="nombre" placeholder="Nombre" required class="input-full">
+                                <input type="text" name="apellido" placeholder="Apellido" required class="input-full">
+                                <input type="text" name="calle" placeholder="Calle" required class="input-full">
+                                <input type="text" name="ciudad" placeholder="Ciudad" required class="input-full">
+                                <input type="text" name="codigo_postal" placeholder="Código Postal" required class="input-full">
+                                <input type="text" name="provincia" placeholder="Provincia" required class="input-full">
+                                <input type="text" name="pais" placeholder="País" required class="input-full">
+                                
+                                <button type="submit" class="btn">Guardar Dirección</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
             </div>
+
+    <style>
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .modal-address {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .input-full {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+    </style>
+
+    <script>
+        function checkNewAddress(type) {
+            var select = document.getElementById('select-' + type);
+            if (select.value === 'new') {
+                document.getElementById('form-new-' + type).style.display = 'flex';
+                document.getElementById('new-address-forms').style.display = 'block';
+                select.value = ""; // Reset select
+            }
+        }
+        function closeModal(type) {
+            document.getElementById('form-new-' + type).style.display = 'none';
+        }
+    </script>
         </div>
     </main>
 

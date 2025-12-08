@@ -33,7 +33,7 @@ try {
         $provincia = trim($_POST['provincia'] ?? '');
         $pais = trim($_POST['pais'] ?? '');
         $id_tipo = (int) ($_POST['id_tipo'] ?? 1);
-        $facturacion = $use_facturacion_column ? (isset($_POST['facturacion']) ? 1 : 0) : null;
+        $facturacion = $use_facturacion_column ? (int)($_POST['facturacion'] ?? 0) : null;
 
         if (!$nombre || !$apellido || !$calle) {
             throw new Exception('Campos obligatorios faltantes');
@@ -84,7 +84,7 @@ try {
         $provincia = trim($_POST['provincia'] ?? '');
         $pais = trim($_POST['pais'] ?? '');
         $id_tipo = (int) ($_POST['id_tipo'] ?? 1);
-        $facturacion = $use_facturacion_column ? (isset($_POST['facturacion']) ? 1 : 0) : null;
+        $facturacion = $use_facturacion_column ? (int)($_POST['facturacion'] ?? 0) : null;
 
         if (!$id_usuario_direccion || !$id_direccion) {
             throw new Exception('Identificadores no válidos');
@@ -146,14 +146,30 @@ try {
         $stmt = $pdo->prepare("DELETE FROM usuarios_direcciones WHERE id_usuario_direccion = :id_ud");
         $stmt->execute(['id_ud' => $id_usuario_direccion]);
     }
+    // Comprobar si hay redirección personalizada
+    $redirect = $_POST['redirect'] ?? '';
+
 } catch (Exception $e) {
-    // Guardar mensaje en sesión y redirigir a perfil
+    // Guardar mensaje en sesión
     $_SESSION['mensaje_perfil'] = $e->getMessage();
-    header('Location: ../perfil.php');
+    
+    // Si veníamos de checkout (o otro sitio indicado en redirect), volvemos allí con el error
+    $redirect = $_POST['redirect'] ?? '';
+    if (!empty($redirect)) {
+         // Ajustar la ruta si no es absoluta o relativa correcta (asumiendo que redirect viene preparado como ../checkout.php)
+         header('Location: ' . $redirect);
+    } else {
+        header('Location: ../perfil.php');
+    }
     exit;
 }
-// Si todo fue bien y no hubo excepciones
-// Si todo fue bien: guardar mensaje y redirigir
+
+// Si todo fue bien
 $_SESSION['mensaje_perfil'] = 'Operación realizada con éxito';
-header('Location: ../perfil.php');
+
+if (!empty($redirect)) {
+    header('Location: ' . $redirect);
+} else {
+    header('Location: ../perfil.php');
+}
 exit;
