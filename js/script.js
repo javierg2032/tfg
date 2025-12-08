@@ -299,8 +299,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnMenos = cantidadDiv.querySelector(".menos");
 
     const stockDisponible = parseInt(cantidadDiv.dataset.stock) || Infinity;
+    const enCarrito = parseInt(cantidadDiv.dataset.enCarrito) || 0;
     const maxPorPedido = 5;
-    const limite = Math.min(stockDisponible, maxPorPedido);
+    
+    // El límite es lo que queda hasta llegar a 5, o el stock disponible, lo que sea menor.
+    // Si ya tiene 5 en el carrito, el límite será 0 (y si es negativo lo tratamos como 0).
+    const limitePorRestriccion = Math.max(0, maxPorPedido - enCarrito);
+    const limite = Math.min(stockDisponible, limitePorRestriccion);
 
     function mostrarTooltip(mensaje) {
       let tooltip = cantidadDiv.querySelector(".tooltip-cantidad");
@@ -309,16 +314,30 @@ document.addEventListener("DOMContentLoaded", () => {
       tooltip.className = "tooltip-cantidad";
       tooltip.textContent = mensaje;
       cantidadDiv.appendChild(tooltip);
-      setTimeout(() => tooltip.remove(), 2000);
+      setTimeout(() => tooltip.remove(), 2500); // Un poco más de tiempo para leer
     }
 
     btnMas?.addEventListener("click", () => {
       let valor = parseInt(input.value) || 0;
+      
+      // Caso especial: si el límite es 0 (ya tiene 5 o más), no dejar subir nada
+      if (limite === 0) {
+          mostrarTooltip(`Ya tienes ${enCarrito} unidades en el carrito. El máximo es ${maxPorPedido}.`);
+          return;
+      }
+
       if (valor < limite) {
         input.value = valor + 1;
         input.dispatchEvent(new Event("change"));
       } else {
-        mostrarTooltip(`Máximo ${limite} unidades`);
+        // Diferenciar mensaje según por qué se bloquea
+        if (limitePorRestriccion < stockDisponible && valor >= limitePorRestriccion) {
+            // Se bloquea por el límite de 5 items total
+             mostrarTooltip(`Ya tienes ${enCarrito} en el carrito. Total máx: ${maxPorPedido}.`);
+        } else {
+            // Se bloquea por stock
+            mostrarTooltip(`Máximo ${limite} unidades (Stock limitado)`);
+        }
       }
     });
 

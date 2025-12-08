@@ -130,7 +130,10 @@ if (isset($_GET['id'])) {
 
         <div class="acciones">
           <form action="php/anade_carrito.php" method="post" class="form-anade-carrito">
-            <div class="cantidad" data-stock="<?php echo $producto['stock']; ?>">
+            <?php 
+              $cantidad_en_carrito = isset($_SESSION['carrito'][$id]['cantidad']) ? $_SESSION['carrito'][$id]['cantidad'] : 0;
+            ?>
+            <div class="cantidad" data-stock="<?php echo $producto['stock']; ?>" data-en-carrito="<?php echo $cantidad_en_carrito; ?>">
               <button type="button" class="menos">-</button>
               <input type="number" name="cantidad" value="1" min="1" readonly />
               <button type="button" class="mas">+</button>
@@ -139,10 +142,6 @@ if (isset($_GET['id'])) {
             <button type="submit" class="btn-carrito">Añadir al carrito</button>
           </form>
         </div>
-
-        <button class="btn-paypal">
-          <img src="assets/PayPal.svg" alt="Logo PayPal" />
-        </button>
       </div>
     </section>
 
