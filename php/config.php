@@ -16,6 +16,9 @@ try {
     $pdo = new PDO($dsn, $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+    require_once __DIR__ . '/migraciones.php';
+    aplicaMigraciones($pdo);
 } catch (PDOException $e) {
     die("Error de conexión con la base de datos. Revisa la configuración del archivo .env");
 }

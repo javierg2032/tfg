@@ -68,8 +68,8 @@ desarrollada como **Trabajo de Fin de Grado** con PHP, MySQL y JavaScript sin fr
    El administrador se crea automáticamente la primera vez que se abre la web.
 4. Abre `http://localhost/tfg/` en el navegador.
 
-> **¿Ya tenías la base de datos de la versión entregada del TFG?** Ejecuta `database/migracion_portfolio.sql`
-> para añadir las tablas y columnas nuevas sin perder datos.
+> **¿Ya tenías la base de datos de la versión entregada del TFG?** No hace falta hacer nada: al abrir la web se
+> aplica automáticamente `database/migracion_portfolio.sql`, que añade las tablas y columnas nuevas sin perder datos.
 
 ### Datos de prueba
 
