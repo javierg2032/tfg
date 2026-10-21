@@ -60,12 +60,6 @@ CREATE TABLE `carrito` (
 -- Volcado de datos para la tabla `carrito`
 --
 
-INSERT INTO `carrito` (`id_carrito`, `usuario_id`, `producto_id`, `cantidad`, `fecha_actualizacion`) VALUES
-(1, 4, 2, 6, '2025-10-30 14:39:50'),
-(4, 4, 9, 4, '2025-11-12 09:14:46'),
-(6, 4, 17, 4, '2025-11-12 09:54:40'),
-(7, 4, 13, 1, '2025-11-24 14:29:48'),
-(8, 4, 16, 1, '2025-11-24 15:13:55');
 
 -- --------------------------------------------------------
 
@@ -112,9 +106,9 @@ CREATE TABLE `direcciones` (
 --
 
 INSERT INTO `direcciones` (`id_direccion`, `nombre`, `apellido`, `calle`, `ciudad`, `codigo_postal`, `provincia`, `pais`, `facturacion`) VALUES
-(1, 'Javier', 'Galán Cortés', 'c/Parque del Teide 15 3ºB', 'Alcorcón', '28924', 'Madrid', 'España', 0),
-(2, 'Javier', 'Galán Cortés', 'c/Quintanas 46 Escalera 1 Puerta 9', 'Casarrubios del monte', '45950', 'Toledo', 'España', 0),
-(3, 'Javier', 'Galán Cortés', 'c/Parque del Teide 15 3ºB', 'Alcorcón', '28924', 'Madrid', 'España', 1);
+(1, 'Ana', 'Demo Ejemplo', 'Calle Mayor 1, 2ºA', 'Madrid', '28013', 'Madrid', 'España', 0),
+(2, 'Ana', 'Demo Ejemplo', 'Avenida de la Constitución 10', 'Sevilla', '41004', 'Sevilla', 'España', 0),
+(3, 'Ana', 'Demo Ejemplo', 'Calle Mayor 1, 2ºA', 'Madrid', '28013', 'Madrid', 'España', 1);
 
 -- --------------------------------------------------------
 
@@ -193,9 +187,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `usuario`, `correo`, `contrasena`, `fecha_registro`, `admin`) VALUES
-(1, 'Ñulcrum', 'javier.galan2032@gmail.com', '$2y$10$H.Qx4M8u96X5H6nvsz72cOFUo.0l1jelGvc7TZ5.h.muL4mjTRvSy', '2025-09-22 08:33:56', 0),
-(3, 'Maknus', 'enrique1519@gmail.com', '$2y$10$frhL7nPBN25c8V.tKC/R7.MfHaRtqu362WfL1Q0oEWzdc9oUrJe/K', '2025-10-12 10:43:42', 0),
-(4, 'admin', 'admin@ryujin.es', '$2y$10$2lnQBJPUkl0XPCR2IYlgEO0XgofWw.kaykoBFrurkyr4KkfUnvMqK', '2025-10-12 11:48:50', 1);
+(1, 'demo', 'demo@ryujin.es', '$2y$10$2REGVejvK.YB4YDfNq7AnuwV6gAK8PbyCSUAvxgFsp975VWkWHUx2', '2025-10-01 10:00:00', 0);
 
 -- --------------------------------------------------------
 
@@ -215,9 +207,9 @@ CREATE TABLE `usuarios_direcciones` (
 --
 
 INSERT INTO `usuarios_direcciones` (`id_usuario_direccion`, `id_usuario`, `id_direccion`, `id_tipo`) VALUES
-(1, 4, 1, 1),
-(2, 4, 2, 1),
-(3, 4, 3, 1);
+(1, 1, 1, 1),
+(2, 1, 2, 1),
+(3, 1, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -230,6 +222,7 @@ CREATE TABLE `pedidos` (
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
   `total` decimal(10,2) NOT NULL,
   `estado` varchar(50) NOT NULL DEFAULT 'pendiente',
+  `metodo_pago` varchar(100) DEFAULT NULL,
   `id_direccion` int(11) NOT NULL,
   `id_direccion_facturacion` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -245,6 +238,28 @@ CREATE TABLE `usuario_pedidos` (
   `id_usuario` int(11) NOT NULL,
   `id_pedido` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `metodos_pago`
+-- Solo se guardan datos no sensibles: marca, 4 últimos dígitos y caducidad (nunca el número completo ni el CVV)
+--
+
+CREATE TABLE `metodos_pago` (
+  `id_metodo` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `tipo` enum('tarjeta','paypal') NOT NULL,
+  `titular` varchar(100) DEFAULT NULL,
+  `marca` varchar(30) DEFAULT NULL,
+  `ultimos4` char(4) DEFAULT NULL,
+  `caducidad` char(5) DEFAULT NULL,
+  `email_paypal` varchar(100) DEFAULT NULL,
+  `fecha_alta` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `metodos_pago` (`id_metodo`, `id_usuario`, `tipo`, `titular`, `marca`, `ultimos4`, `caducidad`, `email_paypal`) VALUES
+(1, 1, 'tarjeta', 'Ana Demo Ejemplo', 'Visa', '4242', '12/30', NULL);
 
 -- --------------------------------------------------------
 
@@ -339,6 +354,13 @@ ALTER TABLE `usuario_pedidos`
   ADD KEY `id_pedido` (`id_pedido`);
 
 --
+-- Indices de la tabla `metodos_pago`
+--
+ALTER TABLE `metodos_pago`
+  ADD PRIMARY KEY (`id_metodo`),
+  ADD KEY `id_usuario` (`id_usuario`);
+
+--
 -- Indices de la tabla `detalles_pedido`
 --
 ALTER TABLE `detalles_pedido`
@@ -360,7 +382,7 @@ ALTER TABLE `anuncios`
 -- AUTO_INCREMENT de la tabla `carrito`
 --
 ALTER TABLE `carrito`
-  MODIFY `id_carrito` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_carrito` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `categorias`
@@ -390,7 +412,7 @@ ALTER TABLE `tipos_direccion`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios_direcciones`
@@ -411,6 +433,12 @@ ALTER TABLE `usuario_pedidos`
   MODIFY `id_usuario_pedido` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `metodos_pago`
+--
+ALTER TABLE `metodos_pago`
+  MODIFY `id_metodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT de la tabla `detalles_pedido`
 --
 ALTER TABLE `detalles_pedido`
@@ -425,7 +453,7 @@ ALTER TABLE `detalles_pedido`
 --
 ALTER TABLE `carrito`
   ADD CONSTRAINT `carrito_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
-  ADD CONSTRAINT `carrito_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id_producto`);
+  ADD CONSTRAINT `carrito_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `productos`
@@ -447,6 +475,12 @@ ALTER TABLE `usuarios_direcciones`
 ALTER TABLE `pedidos`
   ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`id_direccion`) REFERENCES `direcciones` (`id_direccion`),
   ADD CONSTRAINT `pedidos_ibfk_fact` FOREIGN KEY (`id_direccion_facturacion`) REFERENCES `direcciones` (`id_direccion`);
+
+--
+-- Filtros para la tabla `metodos_pago`
+--
+ALTER TABLE `metodos_pago`
+  ADD CONSTRAINT `metodos_pago_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `usuario_pedidos`

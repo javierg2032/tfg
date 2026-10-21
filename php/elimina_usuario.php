@@ -1,11 +1,9 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
-// Verificar si es admin
-if (empty($_SESSION['es_admin']) || $_SESSION['es_admin'] !== true) {
-    die("Acceso denegado.");
-}
+exigeAdmin();
+exigePostConCsrf('mensaje_admin', '../admin.php#usuarios');
 
 // Verificar método POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -13,14 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$id_usuario) {
         $_SESSION['mensaje_admin'] = "ID de usuario inválido.";
-        header("Location: ../admin.php");
+        header("Location: ../admin.php#usuarios");
         exit;
     }
 
     // Prevenir auto-eliminación
     if ($id_usuario == $_SESSION['usuario_id']) {
         $_SESSION['mensaje_admin'] = "No puedes eliminar tu propia cuenta.";
-        header("Location: ../admin.php");
+        header("Location: ../admin.php#usuarios");
         exit;
     }
 
@@ -30,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['id' => $id_usuario]);
         $_SESSION['mensaje_admin'] = "Usuario eliminado correctamente.";
     } catch (PDOException $e) {
-        $_SESSION['mensaje_admin'] = "Error al eliminar usuario: " . $e->getMessage();
+        $_SESSION['mensaje_admin'] = "Error al eliminar usuario.";
     }
 
-    header("Location: ../admin.php");
+    header("Location: ../admin.php#usuarios");
     exit;
 }
 ?>

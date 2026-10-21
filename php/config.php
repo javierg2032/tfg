@@ -1,9 +1,14 @@
 <?php
-$host = "localhost";
-$db = "ryujin";       // tu base de datos
-$user = "root";          // tu usuario MySQL
-$pass = "";              // tu contraseña MySQL
-$port = 3306;
+require_once __DIR__ . '/funciones.php';
+
+// Variables de entorno (.env en la raíz del proyecto). Si no existen se usan los valores por defecto de XAMPP.
+$env = cargaEnv(__DIR__ . '/../.env');
+
+$host = $env['DB_HOST'] ?? "localhost";
+$db = $env['DB_NOMBRE'] ?? "ryujin";
+$user = $env['DB_USUARIO'] ?? "root";
+$pass = $env['DB_CONTRASENA'] ?? "";
+$port = (int) ($env['DB_PUERTO'] ?? 3306);
 
 try {
     // DSN corregido: host y puerto en el formato esperado por PDO
@@ -12,6 +17,5 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
+    die("Error de conexión con la base de datos. Revisa la configuración del archivo .env");
 }
-?>

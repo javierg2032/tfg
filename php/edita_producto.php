@@ -1,52 +1,35 @@
 <?php
 session_start();
-require 'config.php'; // Ajusta la ruta si es necesario
+require_once 'config.php';
 
-// Comprobar si el usuario es administrador
-if (empty($_SESSION['es_admin']) || $_SESSION['es_admin'] !== true) {
-    header("Location: ../index.php");
-    exit;
-}
+exigeAdmin();
+exigePostConCsrf('mensaje_admin', '../admin.php');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = $_POST['id'] ?? null;
-    $nombre = $_POST['nombre'] ?? '';
-    $precio = $_POST['precio'] ?? 0;
-    $descripcion = $_POST['descripcion'] ?? '';
-    $stock = $_POST['stock'] ?? 0;
-    $imagenActual = $_POST['imagen_actual'] ?? '';
+$id = (int) ($_POST['id'] ?? 0);
 
-    if (!$id) {
-        die("ID de producto no válido.");
+try {
+    $stmt = $pdo->prepare("SELECT imagen FROM productos WHERE id_producto = :id");
+    $stmt->execute(['id' => $id]);
+    $imagenActual = $stmt->fetchColumn();
+    if ($imagenActual === false) {
+        throw new Exception('Producto no encontrado.');
     }
 
-    // Procesar imagen si se sube una nueva
-    $imagenNueva = $imagenActual; // Por defecto mantener la actual
-    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
-        $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
-        $nombreArchivo = time() . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
-        $rutaDestino = __DIR__ . '/../assets/' . $nombreArchivo;
+    $datos = datosProductoFormulario();
+    $datos['id'] = $id;
 
-        if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino)) {
-            $imagenNueva = '/assets/' . $nombreArchivo;
-        } else {
-            die("Error al subir la imagen.");
-        }
+    // Procesar imagen solo si se sube una nueva
+    $datos['imagen'] = $imagenActual;
+    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $datos['imagen'] = subeImagenProducto($_FILES['imagen']);
     }
 
-    // Actualizar producto en la base de datos
-    $sql = "UPDATE productos SET nombre = :nombre, precio = :precio, descripcion = :descripcion, stock = :stock, imagen = :imagen WHERE id_producto = :id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':nombre' => $nombre,
-        ':precio' => $precio,
-        ':descripcion' => $descripcion,
-        ':stock' => $stock,
-        ':imagen' => $imagenNueva,
-        ':id' => $id
-    ]);
-
-    header("Location: ../admin.php?mensaje=producto_actualizado");
-    exit;
+    $sql = "UPDATE productos SET nombre = :nombre, precio = :precio, descripcion = :descripcion, stock = :stock,
+            imagen = :imagen, id_categoria = :id_categoria WHERE id_producto = :id";
+    $pdo->prepare($sql)->execute($datos);
+    guardaMensaje('mensaje_admin', 'Producto actualizado correctamente');
+} catch (Exception $e) {
+    guardaMensaje('mensaje_admin', $e instanceof PDOException ? 'Error al actualizar el producto.' : $e->getMessage());
 }
-?>
+
+redirige('../admin.php');

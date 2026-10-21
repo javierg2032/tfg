@@ -1,25 +1,23 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
-// Verificar si es admin
-if (empty($_SESSION['es_admin']) || $_SESSION['es_admin'] !== true) {
-    die("Acceso denegado.");
-}
+exigeAdmin();
+exigePostConCsrf('mensaje_admin', '../admin.php#usuarios');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_usuario = filter_input(INPUT_POST, 'id_usuario', FILTER_VALIDATE_INT);
 
     if (!$id_usuario) {
         $_SESSION['mensaje_admin'] = "ID de usuario inválido.";
-        header("Location: ../admin.php");
+        header("Location: ../admin.php#usuarios");
         exit;
     }
 
     // Prevenir cambio de propio rol
     if ($id_usuario == $_SESSION['usuario_id']) {
         $_SESSION['mensaje_admin'] = "No puedes cambiar tu propio rol.";
-        header("Location: ../admin.php");
+        header("Location: ../admin.php#usuarios");
         exit;
     }
 
@@ -31,10 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $_SESSION['mensaje_admin'] = "Rol de usuario actualizado.";
     } catch (PDOException $e) {
-        $_SESSION['mensaje_admin'] = "Error al cambiar rol: " . $e->getMessage();
+        $_SESSION['mensaje_admin'] = "Error al cambiar rol.";
     }
 
-    header("Location: ../admin.php");
+    header("Location: ../admin.php#usuarios");
     exit;
 }
 ?>

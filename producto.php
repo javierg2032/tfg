@@ -1,139 +1,70 @@
 <?php
 session_start();
+require_once 'php/config.php';
 
-require 'php/config.php';
+$id = (int) ($_GET['id'] ?? 0);
 
-// Verificar si viene el id en la URL
-if (isset($_GET['id'])) {
-  $id = intval($_GET['id']); // seguridad: evitar inyección SQL
+$stmt = $pdo->prepare("SELECT p.nombre, p.precio, p.imagen, p.descripcion, p.stock, p.id_categoria, c.nombre AS categoria
+    FROM productos p JOIN categorias c ON c.id_categoria = p.id_categoria
+    WHERE p.id_producto = :id");
+$stmt->execute(['id' => $id]);
+$producto = $stmt->fetch();
 
-  // Consulta a la base de datos usando PDO
-  $sql = "SELECT nombre, precio, imagen, descripcion, stock, id_categoria
-            FROM productos 
-            WHERE id_producto = :id";
-
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute(['id' => $id]);
-  $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-
-  if (!$producto) {
-    die("Producto no encontrado.");
-  }
-
-} else {
-  die("ID de producto no especificado.");
+if (!$producto) {
+    http_response_code(404);
+    $tituloPagina = 'Producto no encontrado';
+    include 'includes/cabecera.php';
+    echo '<main class="pagina-info"><h2>Producto no encontrado</h2><p>El producto que buscas no existe o ya no está disponible.</p>'
+        . '<p><a href="catalogo.php" class="btn">Ir al catálogo</a></p></main>';
+    include 'includes/pie.php';
+    exit;
 }
+
+// Productos de la misma categoría
+$stmt = $pdo->prepare("SELECT id_producto, nombre, precio, imagen
+    FROM productos
+    WHERE id_producto != :id AND id_categoria = :id_categoria
+    ORDER BY RAND(id_producto + :seed)
+    LIMIT 4");
+$stmt->execute(['id' => $id, 'id_categoria' => $producto['id_categoria'], 'seed' => $id]);
+$relacionados = $stmt->fetchAll();
+
+$cantidadEnCarrito = $_SESSION['carrito'][$id]['cantidad'] ?? 0;
+$mensajeCarrito = leeMensaje('mensaje_carrito');
+$stock = (int) $producto['stock'];
+
+$tituloPagina = $producto['nombre'];
+include 'includes/cabecera.php';
 ?>
 
-
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="lang" content="es" />
-  <meta name="author" content="Javier Galán" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="keywords" content="TCG, Pokémon, Magic The Gathering, Digimon" />
-  <title>Ryujin</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="icon" href="assets/Logo.png" type="image/png" />
-</head>
-
-<body>
-  <header>
-    <div class="logo">
-      <a href="index.php">
-        <img src="assets/Logo.png" alt="logo" />
-      </a>
-    </div>
-
-    <div class="buscador">
-      <input type="text" placeholder="Buscar productos..." />
-      <button><i class="fas fa-search"></i></button>
-    </div>
-
-    <div class="icons">
-      <!-- Menú de usuario -->
-      <div class="icono-usuario" id="userIcon">
-        <i class="fas fa-user"></i>
-
-        <?php if (isset($_SESSION['usuario_id'])): ?>
-          <!-- Usuario logueado -->
-          <div class="menu-usuario" id="userMenu">
-            <p>Hola, <?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
-            <a href="perfil.php">Perfil</a>
-
-            <?php if (!empty($_SESSION['es_admin'])): ?>
-              <a href="admin.php">Gestionar web</a>
-            <?php endif; ?>
-
-            <a href="php/logout.php">Cerrar sesión</a>
-          </div>
-        <?php else: ?>
-          <!-- Usuario no logueado -->
-          <div class="login-popup" id="loginPopup">
-            <!-- Formulario de login -->
-            <form id="formulario-login" action="php/login.php" method="post">
-              <input type="text" name="usuario" placeholder="Usuario" required /><br />
-              <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
-              <button type="submit">Entrar</button>
-            </form>
-
-            <p id="link-registro">
-              ¿No tienes cuenta?
-              <a href="#" id="muestra-registro"><u>Regístrate</u></a>
-            </p>
-
-            <!-- Formulario de registro -->
-            <form id="formulario-registro" action="php/registro.php" method="post">
-              <input type="text" name="usuario" placeholder="Usuario" required /><br />
-              <input type="email" name="correo" placeholder="Correo electrónico" required /><br />
-              <input type="password" name="contrasena" placeholder="Contraseña" required /><br />
-              <input type="password" name="repetir_contrasena" placeholder="Repite la contraseña" required /><br />
-              <button type="submit">Registrarse</button>
-            </form>
-
-            <p id="link-login">
-              ¿Ya tienes cuenta?
-              <a href="#" id="muestra-login"><br /><u>Inicia sesión</u></a>
-            </p>
-          </div>
-        <?php endif; ?>
-      </div>
-
-      <!-- Icono de carrito -->
-      <div class="icono-carrito">
-        <i class="fas fa-shopping-cart"></i>
-      </div>
-    </div>
-  </header>
-  <nav class="indice">
-    <ul>
-      <li><a href="#inicio">INICIO</a></li>
-      <li><a href="#tcg">TCG</a></li>
-      <li><a href="#funko">FUNKO POP</a></li>
-      <li><a href="#anime">ANIME</a></li>
-    </ul>
-  </nav>
-
   <main>
+    <?php if ($mensajeCarrito): ?>
+    <div class="mensaje-perfil"><?php echo e($mensajeCarrito); ?></div>
+    <?php endif; ?>
     <section class="producto">
       <div class="img-producto">
-        <img src="/tfg<?php echo $producto['imagen']; ?>" alt="<?php echo $producto['nombre']; ?>" />
+        <img src="<?php echo e(urlImagen($producto['imagen'])); ?>" alt="<?php echo e($producto['nombre']); ?>" />
       </div>
       <div class="compra-producto">
-        <h2 class="nombre"><?php echo $producto['nombre']; ?></h2>
-        <p class="precio"><?php echo number_format($producto['precio'], 2, ',', '.'); ?> €</p>
-        <p class="descripcion"><?php echo $producto['descripcion']; ?></p>
+        <p class="categoria-producto">
+          <a href="catalogo.php?categoria=<?php echo (int) $producto['id_categoria']; ?>"><?php echo e($producto['categoria']); ?></a>
+        </p>
+        <h2 class="nombre"><?php echo e($producto['nombre']); ?></h2>
+        <p class="precio"><?php echo formatoPrecio($producto['precio']); ?></p>
+        <?php if ($stock <= 0): ?>
+        <p class="stock stock-agotado">Agotado</p>
+        <?php elseif ($stock <= 5): ?>
+        <p class="stock stock-bajo">¡Últimas <?php echo $stock; ?> unidades!</p>
+        <?php else: ?>
+        <p class="stock stock-ok">En stock</p>
+        <?php endif; ?>
+        <p class="descripcion"><?php echo nl2br(e($producto['descripcion'])); ?></p>
 
         <div class="acciones">
+          <?php if ($stock > 0): ?>
           <form action="php/anade_carrito.php" method="post" class="form-anade-carrito">
-            <?php 
-              $cantidad_en_carrito = isset($_SESSION['carrito'][$id]['cantidad']) ? $_SESSION['carrito'][$id]['cantidad'] : 0;
-            ?>
-            <div class="cantidad" data-stock="<?php echo $producto['stock']; ?>" data-en-carrito="<?php echo $cantidad_en_carrito; ?>">
+            <?php echo campoCsrf(); ?>
+            <div class="cantidad" data-stock="<?php echo $stock; ?>" data-en-carrito="<?php echo (int) $cantidadEnCarrito; ?>">
               <button type="button" class="menos">-</button>
               <input type="number" name="cantidad" value="1" min="1" readonly />
               <button type="button" class="mas">+</button>
@@ -141,6 +72,9 @@ if (isset($_GET['id'])) {
             <input type="hidden" name="id_producto" value="<?php echo $id; ?>">
             <button type="submit" class="btn-carrito">Añadir al carrito</button>
           </form>
+          <?php else: ?>
+          <button type="button" class="btn-carrito" disabled>Sin stock</button>
+          <?php endif; ?>
         </div>
       </div>
     </section>
@@ -152,93 +86,18 @@ if (isset($_GET['id'])) {
         <h4><u>Productos Relacionados</u></h4>
       </div>
       <div>
-        <?php
-        require 'php/config.php';
-
-        // Asegurarnos de que $id sea un entero para seguridad
-        $id_producto = intval($id);
-
-        $sql_rel = "SELECT id_producto, nombre, precio, imagen 
-            FROM productos 
-            WHERE id_producto != :id AND id_categoria = :id_categoria
-            ORDER BY RAND(id_producto + :seed) 
-            LIMIT 4";
-
-        $stmt = $pdo->prepare($sql_rel);
-        $stmt->execute(['id' => $id_producto, 'id_categoria' => $producto['id_categoria'], 'seed' => $id_producto]);
-        $relacionados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($relacionados as $rel) {
-          echo '<div>';
-          echo '<a href="producto.php?id=' . intval($rel['id_producto']) . '">';
-          echo '<img src="/tfg' . htmlspecialchars($rel['imagen']) . '" alt="' . htmlspecialchars($rel['nombre']) . '">';
-          echo '<p>' . htmlspecialchars($rel['nombre']) . '</p>';
-          echo '<p>Precio: ' . htmlspecialchars($rel['precio']) . '€</p>';
-          echo '</a>';
-          echo '</div>';
-        }
-        ?>
-
+        <?php foreach ($relacionados as $rel): ?>
+        <div>
+          <a href="producto.php?id=<?php echo (int) $rel['id_producto']; ?>">
+            <img src="<?php echo e(urlImagen($rel['imagen'])); ?>" alt="<?php echo e($rel['nombre']); ?>">
+            <p><?php echo e($rel['nombre']); ?></p>
+            <p>Precio: <?php echo formatoPrecio($rel['precio']); ?></p>
+          </a>
+        </div>
+        <?php endforeach; ?>
       </div>
     </section>
 
   </main>
 
-  <!-- Drawer Carrito -->
-  <div id="drawer-carrito" class="drawer">
-    <div class="drawer-header">
-      <h3>Tu Carrito</h3>
-      <span id="cerrar-drawer-carrito" class="cerrar">&times;</span>
-    </div>
-    <div class="drawer-body" id="contenido-carrito">
-      <?php include 'php/muestra_carrito.php'; ?>
-    </div>
-  </div>
-
-  <footer>
-    <div class="logo-footer"><img src="assets/Logo.png" alt="logo" /></div>
-    <div class="info-footer">
-      <h4><u>INFORMACIÓN</u></h4>
-      <a href="">
-        <p>Sobre Ryujin</p>
-      </a>
-      <a href="">
-        <p>Aviso Legal</p>
-      </a>
-      <a href="">
-        <p>Política de privacidad</p>
-      </a>
-      <a href="">
-        <p>Política de cookies</p>
-      </a>
-    </div>
-    <div class="condiciones-footer">
-      <h4><u>CONDICIONES</u></h4>
-      <a href="">
-        <p>Formas de pago</p>
-      </a>
-      <a href="">
-        <p>Garantias y Devoluciones</p>
-      </a>
-      <a href="">
-        <p>Gastos de envío</p>
-      </a>
-      <a href="">
-        <p>Plazos de entrega</p>
-      </a>
-    </div>
-    <div class="contacto-footer">
-      <h4><u>CONTACTO</u></h4>
-      <a href="">
-        <p><i class="fas fa-envelope"></i>info@ryujin.com</p>
-      </a>
-    </div>
-    <div class="copy-footer">
-      <p>Copyright © 2025 Ryujin. Diseñado por Javier Galán Cortés</p>
-    </div>
-  </footer>
-
-  <script src="js/script.js"></script>
-</body>
-
-</html>
+<?php include 'includes/pie.php'; ?>

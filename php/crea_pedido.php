@@ -1,124 +1,153 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
+exigePostConCsrf('mensaje_error', '../checkout.php');
 
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $_SESSION['mensaje_error'] = 'Método no permitido';
-    header("Location: ../checkout.php");
-    exit;
+if (!estaLogueado()) {
+    guardaMensaje('error_login', 'Inicia sesión para finalizar la compra.');
+    redirige('../index.php');
 }
 
-if (!isset($_SESSION['usuario_id'])) {
-    $_SESSION['mensaje_error'] = 'Usuario no autenticado';
-    header("Location: ../index.php"); // O login
-    exit;
-}
-
-$id_usuario = $_SESSION['usuario_id'];
-
-// Obtener datos del POST (standard form submit)
-$id_direccion = $_POST['id_direccion'] ?? null;
-
-if (!$id_direccion) {
-    $_SESSION['mensaje_error'] = 'Dirección no proporcionada';
-    header("Location: ../checkout.php");
-    exit;
-}
+$id_usuario = (int) $_SESSION['usuario_id'];
 
 // Verificar carrito
 if (empty($_SESSION['carrito'])) {
-    $_SESSION['mensaje_error'] = 'El carrito está vacío';
-    header("Location: ../carrito.php");
-    exit;
+    guardaMensaje('mensaje_carrito', 'El carrito está vacío');
+    redirige('../carrito.php');
 }
 
+function errorCheckout($mensaje)
+{
+    guardaMensaje('mensaje_error', $mensaje);
+    redirige('../checkout.php');
+}
+
+// 1. Direcciones: deben existir y pertenecer al usuario
+$id_direccion = (int) ($_POST['id_direccion'] ?? 0);
+$id_direccion_facturacion = (int) ($_POST['id_direccion_facturacion'] ?? 0) ?: $id_direccion;
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM usuarios_direcciones WHERE id_usuario = :uid AND id_direccion = :dir");
+foreach ([$id_direccion, $id_direccion_facturacion] as $dir) {
+    $stmt->execute(['uid' => $id_usuario, 'dir' => $dir]);
+    if (!$dir || !$stmt->fetchColumn()) {
+        errorCheckout('Selecciona una dirección de envío y otra de facturación válidas.');
+    }
+}
+
+// 2. Método de pago (simulado)
+$metodo = (string) ($_POST['metodo_pago'] ?? '');
+$guardarMetodo = !empty($_POST['guardar_metodo']);
+$nuevoMetodo = null; // datos del método a guardar en el perfil
+
+try {
+    if (strpos($metodo, 'guardado:') === 0) {
+        $stmt = $pdo->prepare("SELECT * FROM metodos_pago WHERE id_metodo = :id AND id_usuario = :uid");
+        $stmt->execute(['id' => (int) substr($metodo, 9), 'uid' => $id_usuario]);
+        $guardado = $stmt->fetch();
+        if (!$guardado) throw new Exception('El método de pago seleccionado no existe.');
+        if ($guardado['tipo'] === 'tarjeta' && !caducidadValida($guardado['caducidad'])) {
+            throw new Exception('La tarjeta seleccionada está caducada.');
+        }
+        $descripcionPago = descripcionMetodoPago($guardado);
+    } elseif ($metodo === 'tarjeta') {
+        $tarjeta = validaTarjeta($_POST['titular'] ?? '', $_POST['numero_tarjeta'] ?? '', $_POST['caducidad'] ?? '', $_POST['cvv'] ?? '');
+        if ($tarjeta['rechazada']) throw new Exception('El banco ha rechazado el pago. Prueba con otra tarjeta.');
+        $nuevoMetodo = ['tipo' => 'tarjeta'] + $tarjeta;
+        $descripcionPago = descripcionMetodoPago($nuevoMetodo);
+    } elseif ($metodo === 'paypal') {
+        $email = trim($_POST['email_paypal'] ?? '');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new Exception('Indica un correo de PayPal válido.');
+        $nuevoMetodo = ['tipo' => 'paypal', 'email_paypal' => $email];
+        $descripcionPago = descripcionMetodoPago($nuevoMetodo);
+    } else {
+        throw new Exception('Selecciona un método de pago.');
+    }
+} catch (Exception $e) {
+    errorCheckout($e->getMessage());
+}
+
+// 3. Crear el pedido
 try {
     $pdo->beginTransaction();
 
-    // 1. Calcular total
+    // Bloquear los productos para que dos compras simultáneas no vendan el mismo stock
+    $lineas = lineasCarrito($pdo, true);
+    if (count($lineas) !== count($_SESSION['carrito'])) {
+        // Algún producto se ha eliminado del catálogo: quitarlo del carrito
+        $_SESSION['carrito'] = array_intersect_key($_SESSION['carrito'], $lineas);
+        throw new Exception('Algunos productos de tu carrito ya no están disponibles y se han retirado.');
+    }
+
     $total = 0;
-    foreach ($_SESSION['carrito'] as $id_producto => $item) {
-        $total += $item['precio'] * $item['cantidad'];
+    foreach ($lineas as $linea) {
+        if ($linea['cantidad'] < 1 || $linea['cantidad'] > MAX_UNIDADES_PRODUCTO) {
+            throw new Exception('Cantidad no válida para el producto: ' . $linea['nombre']);
+        }
+        if ($linea['cantidad'] > $linea['stock']) {
+            throw new Exception('No hay suficiente stock para el producto: ' . $linea['nombre']);
+        }
+        $total += $linea['subtotal'];
     }
 
-    // 2. Insertar pedido
-    // Corregido: La tabla pedidos no tiene id_usuario, se usa tabla intermedia.
-    // MODIFICADO: Añadir id_direccion_facturacion
-    $id_direccion_facturacion = $_POST['id_direccion_facturacion'] ?? null;
-    
-    // Si no se envía facturación, usamos la de envío (fallback básico, aunque debería enviarse si el form lo tiene)
-    if (!$id_direccion_facturacion) {
-        $id_direccion_facturacion = $id_direccion;
-    }
-
-    $stmt = $pdo->prepare("INSERT INTO pedidos (total, id_direccion, id_direccion_facturacion, fecha) VALUES (:total, :id_direccion, :id_direccion_facturacion, NOW())");
+    // Insertar pedido (el pago simulado se aprueba al instante)
+    $stmt = $pdo->prepare("INSERT INTO pedidos (total, estado, metodo_pago, id_direccion, id_direccion_facturacion, fecha)
+        VALUES (:total, 'pagado', :metodo_pago, :id_direccion, :id_direccion_facturacion, NOW())");
     $stmt->execute([
-        'total' => $total, 
+        'total' => $total,
+        'metodo_pago' => $descripcionPago,
         'id_direccion' => $id_direccion,
         'id_direccion_facturacion' => $id_direccion_facturacion
     ]);
     $id_pedido = $pdo->lastInsertId();
 
-    // 3. Insertar usuario_pedidos
+    // Relación usuario - pedido
     $stmt = $pdo->prepare("INSERT INTO usuario_pedidos (id_usuario, id_pedido) VALUES (:id_usuario, :id_pedido)");
     $stmt->execute(['id_usuario' => $id_usuario, 'id_pedido' => $id_pedido]);
 
-    // 4. Insertar detalles y actualizar stock
+    // Detalles y actualización de stock (con el precio actual de la BD, no el de la sesión)
     $stmtDetalle = $pdo->prepare("INSERT INTO detalles_pedido (id_pedido, id_producto, cantidad, precio_unitario) VALUES (:id_pedido, :id_producto, :cantidad, :precio)");
-    $stmtStock = $pdo->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id_producto = :id_producto AND stock >= :cantidad");
-    
-    // También limpiar carrito de base de datos si existe tabla carrito persistente
-    // El original intentaba borrar de 'carrito'.
-    // Comprobar si existe tabla carrito (el original lo hacía sin comprobar, asumimos que existe o fallará el try)
-    // Pero si falla el delete, hace rollback?
-    // Pondré un try-catch interno o simplemente ejecutaré.
-    $stmtBorrarCarrito = $pdo->prepare("DELETE FROM carrito WHERE usuario_id = :id_usuario");
-
-    foreach ($_SESSION['carrito'] as $id_producto => $item) {
-        // Insertar detalle
+    $stmtStock = $pdo->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id_producto = :id_producto");
+    foreach ($lineas as $id_producto => $linea) {
         $stmtDetalle->execute([
             'id_pedido' => $id_pedido,
             'id_producto' => $id_producto,
-            'cantidad' => $item['cantidad'],
-            'precio' => $item['precio']
+            'cantidad' => $linea['cantidad'],
+            'precio' => $linea['precio']
         ]);
-
-        // Actualizar stock
-        $stmtStock->execute([
-            'cantidad' => $item['cantidad'],
-            'id_producto' => $id_producto
-        ]);
-        
-        if ($stmtStock->rowCount() == 0) {
-            throw new Exception("No hay suficiente stock para el producto: " . $item['nombre']);
-        }
+        $stmtStock->execute(['cantidad' => $linea['cantidad'], 'id_producto' => $id_producto]);
     }
 
-    // Borrar carrito de BD
-    // Si la tabla no existe, esto lanzará excepción. 
-    // Como no estoy seguro si existe (el original lo tenía), lo envuelvo en try silencioso o compruebo.
-    // El original lo ejecutaba directamente.
-    try {
-        $stmtBorrarCarrito->execute(['id_usuario' => $id_usuario]);
-    } catch (Exception $e) {
-        // Ignorar si falla borrado de carrito persistente (quizás no existe tabla)
+    // Guardar el método de pago en el perfil si se ha pedido
+    if ($nuevoMetodo && $guardarMetodo) {
+        $stmt = $pdo->prepare("INSERT INTO metodos_pago (id_usuario, tipo, titular, marca, ultimos4, caducidad, email_paypal)
+            VALUES (:uid, :tipo, :titular, :marca, :ultimos4, :caducidad, :email)");
+        $stmt->execute([
+            'uid' => $id_usuario,
+            'tipo' => $nuevoMetodo['tipo'],
+            'titular' => $nuevoMetodo['titular'] ?? null,
+            'marca' => $nuevoMetodo['marca'] ?? null,
+            'ultimos4' => $nuevoMetodo['ultimos4'] ?? null,
+            'caducidad' => $nuevoMetodo['caducidad'] ?? null,
+            'email' => $nuevoMetodo['email_paypal'] ?? null,
+        ]);
     }
+
+    // Vaciar el carrito guardado
+    $stmt = $pdo->prepare("DELETE FROM carrito WHERE usuario_id = :id_usuario");
+    $stmt->execute(['id_usuario' => $id_usuario]);
 
     $pdo->commit();
 
     // Limpiar carrito de sesión
     unset($_SESSION['carrito']);
 
-    // Redirección exitosa
-    header("Location: ../pedido_confirmado.php?id_pedido=" . $id_pedido);
-    exit;
+    redirige('../pedido_confirmado.php?id_pedido=' . $id_pedido);
 
 } catch (Exception $e) {
-    $pdo->rollBack();
-    $_SESSION['mensaje_error'] = 'Error al crear el pedido: ' . $e->getMessage();
-    header("Location: ../checkout.php");
-    exit;
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    // Los errores de BD no se muestran al usuario
+    errorCheckout($e instanceof PDOException ? 'No se pudo procesar el pedido. Inténtalo de nuevo.' : $e->getMessage());
 }
-?>

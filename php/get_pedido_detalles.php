@@ -1,27 +1,38 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['usuario_id'])) {
+if (!estaLogueado()) {
+    http_response_code(401);
     echo json_encode(['error' => 'No autorizado']);
     exit;
 }
 
-$uid = $_SESSION['usuario_id'];
-$id_pedido = $_GET['id'] ?? null;
+$uid = (int) $_SESSION['usuario_id'];
+$id_pedido = (int) ($_GET['id'] ?? 0);
 
-if ($id_pedido === null || $id_pedido === '') {
+if (!$id_pedido) {
     echo json_encode(['error' => 'ID de pedido no proporcionado']);
     exit;
 }
 
+// Convierte las columnas de una dirección en el formato que espera el modal
+function formateaDireccion($fila, $prefijo)
+{
+    if (empty($fila[$prefijo . '_nombre'])) return null;
+    return [
+        'nombre' => $fila[$prefijo . '_nombre'] . ' ' . $fila[$prefijo . '_apellido'],
+        'direccion' => $fila[$prefijo . '_calle'],
+        'ciudad' => $fila[$prefijo . '_cp'] . ' - ' . $fila[$prefijo . '_ciudad'],
+        'estado' => $fila[$prefijo . '_provincia'] . ', ' . $fila[$prefijo . '_pais'],
+    ];
+}
+
 try {
     // 1. Verificar si el pedido pertenece al usuario (o si es admin)
-    $isAdmin = !empty($_SESSION['es_admin']) && $_SESSION['es_admin'] === true;
-    
-    if (!$isAdmin) {
+    if (!esAdmin()) {
         $stmtVerify = $pdo->prepare("SELECT COUNT(*) FROM usuario_pedidos WHERE id_usuario = :uid AND id_pedido = :pid");
         $stmtVerify->execute(['uid' => $uid, 'pid' => $id_pedido]);
         if ($stmtVerify->fetchColumn() == 0) {
@@ -30,12 +41,11 @@ try {
         }
     }
 
-    // 2. Obtener información general del pedido y direcciones
-    // JOIN con direcciones para envío y facturación
+    // 2. Información general del pedido y direcciones de envío y facturación
     $query = "
-        SELECT 
-            p.id_pedido, p.fecha, p.total, p.estado,
-            d_envio.nombre AS envio_nombre, d_envio.apellido AS envio_apellido, d_envio.calle AS envio_calle, 
+        SELECT
+            p.id_pedido, p.fecha, p.total, p.estado, p.metodo_pago,
+            d_envio.nombre AS envio_nombre, d_envio.apellido AS envio_apellido, d_envio.calle AS envio_calle,
             d_envio.ciudad AS envio_ciudad, d_envio.codigo_postal AS envio_cp, d_envio.provincia AS envio_provincia, d_envio.pais AS envio_pais,
             d_fact.nombre AS fact_nombre, d_fact.apellido AS fact_apellido, d_fact.calle AS fact_calle,
             d_fact.ciudad AS fact_ciudad, d_fact.codigo_postal AS fact_cp, d_fact.provincia AS fact_provincia, d_fact.pais AS fact_pais
@@ -44,53 +54,41 @@ try {
         LEFT JOIN direcciones d_fact ON p.id_direccion_facturacion = d_fact.id_direccion
         WHERE p.id_pedido = :pid
     ";
-    
     $stmt = $pdo->prepare($query);
     $stmt->execute(['pid' => $id_pedido]);
-    $pedidoInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+    $pedidoInfo = $stmt->fetch();
 
-    // 3. Obtener detalles de productos
+    if (!$pedidoInfo) {
+        echo json_encode(['error' => 'Pedido no encontrado']);
+        exit;
+    }
+
+    // 3. Productos del pedido
     $queryDetalles = "
-        SELECT 
-            dp.cantidad, dp.precio_unitario,
-            prod.nombre, prod.imagen
+        SELECT dp.cantidad, dp.precio_unitario, prod.nombre, prod.imagen
         FROM detalles_pedido dp
         JOIN productos prod ON dp.id_producto = prod.id_producto
         WHERE dp.id_pedido = :pid
     ";
     $stmtDetalles = $pdo->prepare($queryDetalles);
     $stmtDetalles->execute(['pid' => $id_pedido]);
-    $productos = $stmtDetalles->fetchAll(PDO::FETCH_ASSOC);
+    $productos = array_map(function ($prod) {
+        $prod['imagen'] = urlImagen($prod['imagen']);
+        return $prod;
+    }, $stmtDetalles->fetchAll());
 
-    // Si no hay dirección de facturación (pedidos antiguos), usar la de envío en la respuesta o dejar null
-    $facturacion = null;
-    if ($pedidoInfo['fact_nombre']) {
-        $facturacion = [
-            'nombre' => $pedidoInfo['fact_nombre'] . ' ' . $pedidoInfo['fact_apellido'],
-            'direccion' => $pedidoInfo['fact_calle'],
-            'ciudad' => $pedidoInfo['fact_cp'] . ' - ' . $pedidoInfo['fact_ciudad'],
-            'estado' => $pedidoInfo['fact_provincia'] . ', ' . $pedidoInfo['fact_pais']
-        ];
-    }
-
-    $response = [
+    echo json_encode([
         'id_pedido' => $pedidoInfo['id_pedido'],
-        'fecha' => $pedidoInfo['fecha'],
+        'fecha' => date('d/m/Y H:i', strtotime($pedidoInfo['fecha'])),
         'total' => $pedidoInfo['total'],
-        'estado' => $pedidoInfo['estado'] ?? 'Completado', // Asumir completado si no hay estado explícito o es null
-        'envio' => [
-            'nombre' => $pedidoInfo['envio_nombre'] . ' ' . $pedidoInfo['envio_apellido'],
-            'direccion' => $pedidoInfo['envio_calle'],
-            'ciudad' => $pedidoInfo['envio_cp'] . ' - ' . $pedidoInfo['envio_ciudad'],
-            'estado' => $pedidoInfo['envio_provincia'] . ', ' . $pedidoInfo['envio_pais']
-        ],
-        'facturacion' => $facturacion,
+        'estado' => etiquetaEstado($pedidoInfo['estado']),
+        'metodo_pago' => $pedidoInfo['metodo_pago'] ?? 'N/D',
+        'envio' => formateaDireccion($pedidoInfo, 'envio'),
+        'facturacion' => formateaDireccion($pedidoInfo, 'fact'),
         'productos' => $productos
-    ];
-
-    echo json_encode($response);
+    ]);
 
 } catch (Exception $e) {
-    echo json_encode(['error' => 'Error del servidor: ' . $e->getMessage()]);
+    http_response_code(500);
+    echo json_encode(['error' => 'Error del servidor']);
 }
-?>

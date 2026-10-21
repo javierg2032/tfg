@@ -1,35 +1,35 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $usuario = trim($_POST['usuario'] ?? '');
-    $contrasena = $_POST['contrasena'] ?? '';
+$volver = urlRetorno();
+exigePostConCsrf('error_login', $volver);
 
-    if (!$usuario || !$contrasena) {
-        die("Todos los campos son obligatorios.");
-    }
+$usuario = trim($_POST['usuario'] ?? '');
+$contrasena = $_POST['contrasena'] ?? '';
 
-    // Buscar usuario en la base de datos
-    $stmt = $pdo->prepare("SELECT id_usuario, usuario, contrasena, admin FROM usuarios WHERE usuario = :usuario");
-    $stmt->execute(['usuario' => $usuario]);
-    $usuario_db = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($usuario_db && password_verify($contrasena, $usuario_db['contrasena'])) {
-        // Login correcto: iniciar sesión
-        $_SESSION['usuario_id'] = $usuario_db['id_usuario'];
-        $_SESSION['usuario_nombre'] = $usuario_db['usuario'];
-        $_SESSION['es_admin'] = (bool)$usuario_db['admin'];
-
-        // Redirigir según tipo de usuario
-        if ($_SESSION['es_admin']) {
-            header("Location: ../admin.php");
-        } else {
-            header("Location: ../index.php");
-        }
-        exit;
-    } else {
-        die("Usuario o contraseña incorrectos.");
-    }
+if (!$usuario || !$contrasena) {
+    guardaMensaje('error_login', 'Todos los campos son obligatorios.');
+    redirige($volver);
 }
-?>
+
+// Se permite iniciar sesión con el nombre de usuario o con el correo
+$stmt = $pdo->prepare("SELECT id_usuario, usuario, contrasena, admin FROM usuarios WHERE usuario = :usuario OR correo = :correo");
+$stmt->execute(['usuario' => $usuario, 'correo' => $usuario]);
+$usuario_db = $stmt->fetch();
+
+if (!$usuario_db || !password_verify($contrasena, $usuario_db['contrasena'])) {
+    guardaMensaje('error_login', 'Usuario o contraseña incorrectos.');
+    redirige($volver);
+}
+
+// Login correcto: nuevo identificador de sesión para evitar fijación de sesión
+session_regenerate_id(true);
+$_SESSION['usuario_id'] = (int) $usuario_db['id_usuario'];
+$_SESSION['usuario_nombre'] = $usuario_db['usuario'];
+$_SESSION['es_admin'] = (bool) $usuario_db['admin'];
+
+cargaCarritoGuardado($pdo, $_SESSION['usuario_id']);
+
+// Redirigir según tipo de usuario
+redirige($_SESSION['es_admin'] ? '../admin.php' : $volver);

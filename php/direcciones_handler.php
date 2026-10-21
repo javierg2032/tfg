@@ -1,175 +1,82 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: ../perfil.php');
-    exit;
+if (!estaLogueado()) {
+    redirige('../perfil.php');
 }
+
+// Solo se permite volver al perfil o al checkout (evita redirecciones a sitios externos)
+$redirect = ($_POST['redirect'] ?? '') === 'checkout' ? '../checkout.php' : '../perfil.php';
+
+exigePostConCsrf('mensaje_perfil', $redirect);
 
 $action = $_POST['action'] ?? '';
 $uid = (int) $_SESSION['usuario_id'];
 
-// Detectar si la columna 'facturacion' existe (compatibilidad con esquema actualizado)
-$use_facturacion_column = false;
-try {
-    $colstmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'direcciones' AND COLUMN_NAME = 'facturacion'");
-    $colstmt->execute();
-    $colinfo = $colstmt->fetch();
-    if ($colinfo && !empty($colinfo['cnt'])) {
-        $use_facturacion_column = true;
+// Devuelve el vínculo usuario-dirección si pertenece al usuario actual
+function vinculoDelUsuario(PDO $pdo, $idUsuarioDireccion, $uid)
+{
+    $stmt = $pdo->prepare("SELECT id_usuario, id_direccion FROM usuarios_direcciones WHERE id_usuario_direccion = :id_ud");
+    $stmt->execute(['id_ud' => $idUsuarioDireccion]);
+    $ud = $stmt->fetch();
+    if (!$ud || (int) $ud['id_usuario'] !== $uid) {
+        throw new Exception('No autorizado');
     }
-} catch (Exception $e) {
-    $use_facturacion_column = false;
+    return $ud;
+}
+
+function datosDireccion()
+{
+    $campos = ['nombre', 'apellido', 'calle', 'ciudad', 'codigo_postal', 'provincia', 'pais'];
+    $datos = [];
+    foreach ($campos as $campo) {
+        $datos[$campo] = mb_substr(trim($_POST[$campo] ?? ''), 0, 255);
+        if ($datos[$campo] === '') {
+            throw new Exception('Todos los campos de la dirección son obligatorios.');
+        }
+    }
+    $datos['facturacion'] = !empty($_POST['facturacion']) ? 1 : 0;
+    return $datos;
 }
 
 try {
     if ($action === 'add') {
-        $nombre = trim($_POST['nombre'] ?? '');
-        $apellido = trim($_POST['apellido'] ?? '');
-        $calle = trim($_POST['calle'] ?? '');
-        $ciudad = trim($_POST['ciudad'] ?? '');
-        $codigo_postal = trim($_POST['codigo_postal'] ?? '');
-        $provincia = trim($_POST['provincia'] ?? '');
-        $pais = trim($_POST['pais'] ?? '');
-        $id_tipo = (int) ($_POST['id_tipo'] ?? 1);
-        $facturacion = $use_facturacion_column ? (int)($_POST['facturacion'] ?? 0) : null;
+        $datos = datosDireccion();
 
-        if (!$nombre || !$apellido || !$calle) {
-            throw new Exception('Campos obligatorios faltantes');
-        }
-
-        // Insertar en direcciones (incluir facturacion si existe la columna)
-        if ($use_facturacion_column) {
-            $stmt = $pdo->prepare("INSERT INTO direcciones (nombre, apellido, calle, ciudad, codigo_postal, provincia, pais, facturacion) VALUES (:nombre, :apellido, :calle, :ciudad, :codigo_postal, :provincia, :pais, :facturacion)");
-            $stmt->execute([
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'calle' => $calle,
-                'ciudad' => $ciudad,
-                'codigo_postal' => $codigo_postal,
-                'provincia' => $provincia,
-                'pais' => $pais,
-                'facturacion' => $facturacion
-            ]);
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO direcciones (nombre, apellido, calle, ciudad, codigo_postal, provincia, pais) VALUES (:nombre, :apellido, :calle, :ciudad, :codigo_postal, :provincia, :pais)");
-            $stmt->execute([
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'calle' => $calle,
-                'ciudad' => $ciudad,
-                'codigo_postal' => $codigo_postal,
-                'provincia' => $provincia,
-                'pais' => $pais
-            ]);
-        }
-
+        $stmt = $pdo->prepare("INSERT INTO direcciones (nombre, apellido, calle, ciudad, codigo_postal, provincia, pais, facturacion) VALUES (:nombre, :apellido, :calle, :ciudad, :codigo_postal, :provincia, :pais, :facturacion)");
+        $stmt->execute($datos);
         $id_direccion = $pdo->lastInsertId();
 
         // Vincular al usuario
-        $stmt = $pdo->prepare("INSERT INTO usuarios_direcciones (id_usuario, id_direccion, id_tipo) VALUES (:id_usuario, :id_direccion, :id_tipo)");
-        $stmt->execute(['id_usuario' => $uid, 'id_direccion' => $id_direccion, 'id_tipo' => $id_tipo]);
-        // id del vínculo recién creado
-        $id_usuario_direccion = (int) $pdo->lastInsertId();
+        $stmt = $pdo->prepare("INSERT INTO usuarios_direcciones (id_usuario, id_direccion) VALUES (:id_usuario, :id_direccion)");
+        $stmt->execute(['id_usuario' => $uid, 'id_direccion' => $id_direccion]);
 
     } elseif ($action === 'edit') {
-        $id_usuario_direccion = (int) ($_POST['id_usuario_direccion'] ?? 0);
-        $id_direccion = (int) ($_POST['id_direccion'] ?? 0);
-        $nombre = trim($_POST['nombre'] ?? '');
-        $apellido = trim($_POST['apellido'] ?? '');
-        $calle = trim($_POST['calle'] ?? '');
-        $ciudad = trim($_POST['ciudad'] ?? '');
-        $codigo_postal = trim($_POST['codigo_postal'] ?? '');
-        $provincia = trim($_POST['provincia'] ?? '');
-        $pais = trim($_POST['pais'] ?? '');
-        $id_tipo = (int) ($_POST['id_tipo'] ?? 1);
-        $facturacion = $use_facturacion_column ? (int)($_POST['facturacion'] ?? 0) : null;
+        // El id de la dirección se obtiene del vínculo del usuario, nunca del formulario,
+        // para que no se pueda editar la dirección de otra persona
+        $ud = vinculoDelUsuario($pdo, (int) ($_POST['id_usuario_direccion'] ?? 0), $uid);
+        $datos = datosDireccion();
+        $datos['id_direccion'] = $ud['id_direccion'];
 
-        if (!$id_usuario_direccion || !$id_direccion) {
-            throw new Exception('Identificadores no válidos');
-        }
-
-        // Comprobar que la dirección pertenece al usuario
-        $stmt = $pdo->prepare("SELECT id_usuario FROM usuarios_direcciones WHERE id_usuario_direccion = :id_ud");
-        $stmt->execute(['id_ud' => $id_usuario_direccion]);
-        $ud = $stmt->fetch();
-        if (!$ud || (int) $ud['id_usuario'] !== $uid) {
-            throw new Exception('No autorizado');
-        }
-
-        // Actualizar tabla direcciones (incluir facturacion si aplica)
-        if ($use_facturacion_column) {
-            $stmt = $pdo->prepare("UPDATE direcciones SET nombre = :nombre, apellido = :apellido, calle = :calle, ciudad = :ciudad, codigo_postal = :codigo_postal, provincia = :provincia, pais = :pais, facturacion = :facturacion WHERE id_direccion = :id_direccion");
-            $stmt->execute([
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'calle' => $calle,
-                'ciudad' => $ciudad,
-                'codigo_postal' => $codigo_postal,
-                'provincia' => $provincia,
-                'pais' => $pais,
-                'facturacion' => $facturacion,
-                'id_direccion' => $id_direccion
-            ]);
-        } else {
-            $stmt = $pdo->prepare("UPDATE direcciones SET nombre = :nombre, apellido = :apellido, calle = :calle, ciudad = :ciudad, codigo_postal = :codigo_postal, provincia = :provincia, pais = :pais WHERE id_direccion = :id_direccion");
-            $stmt->execute([
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'calle' => $calle,
-                'ciudad' => $ciudad,
-                'codigo_postal' => $codigo_postal,
-                'provincia' => $provincia,
-                'pais' => $pais,
-                'id_direccion' => $id_direccion
-            ]);
-        }
-
-        // Actualizar tipo en usuarios_direcciones
-        $stmt = $pdo->prepare("UPDATE usuarios_direcciones SET id_tipo = :id_tipo WHERE id_usuario_direccion = :id_ud");
-        $stmt->execute(['id_tipo' => $id_tipo, 'id_ud' => $id_usuario_direccion]);
+        $stmt = $pdo->prepare("UPDATE direcciones SET nombre = :nombre, apellido = :apellido, calle = :calle, ciudad = :ciudad, codigo_postal = :codigo_postal, provincia = :provincia, pais = :pais, facturacion = :facturacion WHERE id_direccion = :id_direccion");
+        $stmt->execute($datos);
 
     } elseif ($action === 'delete') {
         $id_usuario_direccion = (int) ($_POST['id_usuario_direccion'] ?? 0);
-        if (!$id_usuario_direccion)
-            throw new Exception('Identificador inválido');
+        vinculoDelUsuario($pdo, $id_usuario_direccion, $uid);
 
-        // Comprobar propietario
-        $stmt = $pdo->prepare("SELECT id_usuario, id_direccion FROM usuarios_direcciones WHERE id_usuario_direccion = :id_ud");
-        $stmt->execute(['id_ud' => $id_usuario_direccion]);
-        $ud = $stmt->fetch();
-        if (!$ud || (int) $ud['id_usuario'] !== $uid)
-            throw new Exception('No autorizado');
-
-        // Eliminar el vínculo; la dirección en sí se mantiene (o se elimina si quieres)
+        // Eliminar el vínculo; la dirección se conserva porque puede estar en pedidos anteriores
         $stmt = $pdo->prepare("DELETE FROM usuarios_direcciones WHERE id_usuario_direccion = :id_ud");
         $stmt->execute(['id_ud' => $id_usuario_direccion]);
-    }
-    // Comprobar si hay redirección personalizada
-    $redirect = $_POST['redirect'] ?? '';
-
-} catch (Exception $e) {
-    // Guardar mensaje en sesión
-    $_SESSION['mensaje_perfil'] = $e->getMessage();
-    
-    // Si veníamos de checkout (o otro sitio indicado en redirect), volvemos allí con el error
-    $redirect = $_POST['redirect'] ?? '';
-    if (!empty($redirect)) {
-         // Ajustar la ruta si no es absoluta o relativa correcta (asumiendo que redirect viene preparado como ../checkout.php)
-         header('Location: ' . $redirect);
     } else {
-        header('Location: ../perfil.php');
+        throw new Exception('Acción no válida');
     }
-    exit;
+} catch (Exception $e) {
+    guardaMensaje('mensaje_perfil', $e instanceof PDOException ? 'No se pudo guardar la dirección.' : $e->getMessage());
+    redirige($redirect);
 }
 
 // Si todo fue bien
-$_SESSION['mensaje_perfil'] = 'Operación realizada con éxito';
-
-if (!empty($redirect)) {
-    header('Location: ' . $redirect);
-} else {
-    header('Location: ../perfil.php');
-}
-exit;
+guardaMensaje('mensaje_perfil', 'Operación realizada con éxito');
+redirige($redirect);
