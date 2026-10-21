@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'php/config.php';
+require_once 'php/config.php';
 $carrito = $_SESSION['carrito'] ?? [];
 $total = 0.0;
 foreach ($carrito as $id => $p) {
@@ -25,8 +25,7 @@ foreach ($carrito as $id => $p) {
         <h2>Tu carrito</h2>
         <?php if (!empty($_SESSION['mensaje_carrito'])): ?>
             <div class="mensaje-perfil">
-                <?php echo htmlspecialchars($_SESSION['mensaje_carrito']);
-                unset($_SESSION['mensaje_carrito']); ?></div>
+                <?php echo e(leeMensaje('mensaje_carrito')); ?></div>
         <?php endif; ?>
         <?php if (empty($carrito)): ?>
             <p>El carrito está vacío.</p>
@@ -45,17 +44,19 @@ foreach ($carrito as $id => $p) {
                 <tbody>
                     <?php foreach ($carrito as $id => $p): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($p['nombre']); ?></td>
+                            <td><?php echo e($p['nombre']); ?></td>
                             <td><?php echo number_format(floatval($p['precio']), 2, ',', '.'); ?> €</td>
                             <td>
                                 <form method="post" action="php/actualizar_cantidad_carrito.php" style="display:inline">
-                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+                                    <?php echo campoCsrf(); ?>
+                                    <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                                     <input type="hidden" name="accion" value="menos">
                                     <button type="submit">-</button>
                                 </form>
                                 <?php echo intval($p['cantidad']); ?>
                                 <form method="post" action="php/actualizar_cantidad_carrito.php" style="display:inline">
-                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+                                    <?php echo campoCsrf(); ?>
+                                    <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                                     <input type="hidden" name="accion" value="mas">
                                     <button type="submit">+</button>
                                 </form>
@@ -65,7 +66,8 @@ foreach ($carrito as $id => $p) {
                             <td>
                                 <form method="post" action="php/eliminar_producto_carrito.php"
                                     onsubmit="return confirm('¿Eliminar este producto del carrito?')">
-                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+                                    <?php echo campoCsrf(); ?>
+                                    <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                                     <button type="submit">Eliminar</button>
                                 </form>
                             </td>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'config.php';
+require_once 'config.php';
 
 if (!isset($_SESSION['usuario_id'])) {
     header('Location: ../perfil.php');
@@ -9,16 +9,19 @@ if (!isset($_SESSION['usuario_id'])) {
 
 $uid = (int) $_SESSION['usuario_id'];
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../perfil.php');
-    exit;
-}
+exigePostConCsrf('mensaje_perfil', '../perfil.php');
 
 $usuario = trim($_POST['usuario'] ?? '');
 $correo = trim($_POST['correo'] ?? '');
 
 if (!$usuario || !$correo) {
     $_SESSION['mensaje_perfil'] = 'Usuario y correo son obligatorios.';
+    header('Location: ../perfil.php');
+    exit;
+}
+
+if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+    $_SESSION['mensaje_perfil'] = 'El correo electrónico no es válido.';
     header('Location: ../perfil.php');
     exit;
 }
@@ -40,7 +43,7 @@ try {
     $_SESSION['usuario_nombre'] = $usuario;
     $_SESSION['mensaje_perfil'] = 'Datos actualizados.';
 } catch (Exception $e) {
-    $_SESSION['mensaje_perfil'] = $e->getMessage();
+    $_SESSION['mensaje_perfil'] = 'No se pudieron actualizar los datos.';
 }
 
 header('Location: ../perfil.php');

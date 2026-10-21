@@ -1,5 +1,12 @@
+// Escapa texto antes de insertarlo como HTML (evita XSS con datos de la BD)
+function escapaHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto ?? '';
+    return div.innerHTML;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Lógica para el modal de detalles de pedido en perfil.php
+    // Lógica para el modal de detalles de pedido en perfil.php y admin.php
     const modalDetalles = document.getElementById('modal-detalles-pedido');
     if (modalDetalles) {
         const spanCerrar = document.getElementById('cerrar-modal-detalles');
@@ -9,16 +16,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const divFacturacion = document.getElementById('detalle-direccion-facturacion');
         const spanEstado = document.getElementById('detalle-estado');
         const spanTotal = document.getElementById('detalle-total');
+        const spanFecha = document.getElementById('detalle-fecha');
+        const spanPago = document.getElementById('detalle-pago');
 
         // Cerrar modal
         spanCerrar.onclick = function() {
             modalDetalles.style.display = "none";
         }
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             if (event.target == modalDetalles) {
                 modalDetalles.style.display = "none";
             }
-        }
+        });
 
         // Click en botones "Ver detalles"
         document.querySelectorAll('.btn-ver-detalles').forEach(btn => {
@@ -32,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 divFacturacion.textContent = '...';
                 spanEstado.textContent = '...';
                 spanTotal.textContent = '...';
+                spanFecha.textContent = '...';
+                spanPago.textContent = '...';
 
                 try {
                     const response = await fetch(`php/get_pedido_detalles.php?id=${idPedido}`);
@@ -46,11 +57,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Rellenar datos
                     spanEstado.textContent = data.estado;
                     spanTotal.textContent = data.total;
+                    spanFecha.textContent = data.fecha;
+                    spanPago.textContent = data.metodo_pago;
 
                     // Direcciones
                     const formatDir = (d) => {
                         if (!d) return 'No disponible (Misma que envío)';
-                        return `<strong>${d.nombre}</strong><br>${d.direccion}<br>${d.ciudad}<br>${d.estado}`;
+                        return `<strong>${escapaHtml(d.nombre)}</strong><br>${escapaHtml(d.direccion)}<br>${escapaHtml(d.ciudad)}<br>${escapaHtml(d.estado)}`;
                     };
 
                     divEnvio.innerHTML = formatDir(data.envio);
@@ -61,10 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     data.productos.forEach(prod => {
                         const li = document.createElement('li');
                         li.innerHTML = `
-                            <img src="/tfg${prod.imagen}" alt="${prod.nombre}">
+                            <img src="${escapaHtml(prod.imagen)}" alt="${escapaHtml(prod.nombre)}">
                             <div class="producto-info">
-                                <div><strong>${prod.nombre}</strong></div>
-                                <div>${prod.cantidad} x ${prod.precio_unitario} €</div>
+                                <div><strong>${escapaHtml(prod.nombre)}</strong></div>
+                                <div>${escapaHtml(prod.cantidad)} x ${escapaHtml(prod.precio_unitario)} €</div>
                             </div>
                             <div><strong>${(prod.cantidad * prod.precio_unitario).toFixed(2)} €</strong></div>
                         `;
@@ -79,8 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- CÓDIGO EXISTENTE ---
-  console.log("Script cargado");
 
   /* === Popup Usuario === */
   const userIcon = document.getElementById("userIcon");
@@ -131,6 +142,12 @@ document.addEventListener("DOMContentLoaded", () => {
       registerForm.style.display = "none";
       linkLogin.style.display = "none";
     });
+
+    // Si el servidor devolvió un error de login o registro, abrir el popup con ese formulario
+    if (loginPopup.dataset.abrir) {
+      loginPopup.style.display = "block";
+      if (loginPopup.dataset.abrir === "registro") muestraRegistro.click();
+    }
   }
 
   /* Menu usuario si está logueado */
@@ -208,15 +225,22 @@ document.addEventListener("DOMContentLoaded", () => {
             if(sec.id === id) sec.classList.add("activo");
             else sec.classList.remove("activo");
         });
-        localStorage.setItem('perfil_seccion_activa', id);
+        try {
+            localStorage.setItem('perfil_seccion_activa', id);
+        } catch (e) { /* almacenamiento no disponible */ }
     }
 
-    // Cargar sección guardada
-    const seccionGuardada = localStorage.getItem('perfil_seccion_activa');
+    // Cargar sección indicada en la URL (perfil.php#pedidos) o la última guardada
+    let seccionGuardada = window.location.hash.slice(1);
+    try {
+        seccionGuardada = seccionGuardada || localStorage.getItem('perfil_seccion_activa');
+    } catch (e) { /* almacenamiento no disponible */ }
     if (seccionGuardada) {
         const itemExist = document.querySelector(`.menu-lateral li[data-seccion="${seccionGuardada}"]`);
         if (itemExist) {
             activarSeccion(seccionGuardada);
+            // Evitar el salto del navegador hasta el ancla #seccion
+            if (window.location.hash) window.scrollTo(0, 0);
         }
     }
 
@@ -240,8 +264,17 @@ document.addEventListener("DOMContentLoaded", () => {
         item.classList.add("activo");
         seccionesAdmin.forEach((sec) => sec.classList.remove("activo"));
         document.getElementById(seccionID)?.classList.add("activo");
+        history.replaceState(null, "", window.location.pathname + window.location.search + "#" + seccionID);
       });
     });
+
+    // Abrir la sección indicada en la URL (admin.php#pedidos)
+    const seccionUrl = window.location.hash.slice(1);
+    const itemUrl = seccionUrl && document.querySelector(`.menu-lateral li[data-seccion="${CSS.escape(seccionUrl)}"]`);
+    if (itemUrl) {
+      itemUrl.click();
+      window.scrollTo(0, 0);
+    }
   }
 
   /* === Drawer de edición de producto === */
@@ -266,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("edit-descripcion").value =
         btn.dataset.descripcion;
       document.getElementById("edit-stock").value = btn.dataset.stock;
-      document.getElementById("edit-imagen-actual").value = btn.dataset.imagen;
+      document.getElementById("edit-categoria").value = btn.dataset.categoria;
 
       drawer.classList.add("abierto");
     });
@@ -352,7 +385,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* === Drawer Carrito === */
-  /* === Drawer Carrito === */
   const iconoCarrito = document.querySelector(".icono-carrito");
   const drawerCarrito = document.getElementById("drawer-carrito");
 
@@ -407,6 +439,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const tituloDrawer = document.getElementById("drawer-direccion-titulo");
   const formDir = document.getElementById("form-direccion");
 
+  // Botón de cerrar (X) del drawer
+  cerrarDrawerDir?.addEventListener("click", () => drawerDir.classList.remove("abierto"));
+
   // Cancel button inside drawer
   const btnCancelarDir = document.getElementById("btn-cancelar-dir");
   if (btnCancelarDir)
@@ -419,7 +454,6 @@ document.addEventListener("DOMContentLoaded", () => {
       btnNuevoDir.addEventListener("click", () => {
           document.getElementById("dir-action").value = "add";
           document.getElementById("dir-id-ud").value = "";
-          document.getElementById("dir-id").value = "";
           // Limpiar campos
           document.getElementById("dir-nombre").value = "";
           document.getElementById("dir-apellido").value = "";
@@ -460,8 +494,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("dir-action").value = "edit";
         document.getElementById("dir-id-ud").value =
           editBtn.dataset.id_usuario_direccion || "";
-        document.getElementById("dir-id").value =
-          editBtn.dataset.id_direccion || "";
         document.getElementById("dir-nombre").value =
           editBtn.dataset.nombre || "";
         document.getElementById("dir-apellido").value =
@@ -479,10 +511,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const factChk = document.getElementById("dir-facturacion");
         if (factChk) factChk.checked = editBtn.dataset.facturacion === "1";
         
-        const tipoSel = document.getElementById("dir-id-tipo");
-        if (tipoSel && editBtn.dataset.id_tipo)
-          tipoSel.value = editBtn.dataset.id_tipo;
-          
         document.getElementById("drawer-direccion-titulo").textContent =
           "Editar dirección";
         drawerDir.classList.add("abierto");
